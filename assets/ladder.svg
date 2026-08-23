@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470" role="img" aria-label="The abstraction ladder: machine code, assembly, C, Python, and natural language on top. Every boundary is solid except the newest one, between natural language and the languages below it.">
+  <defs>
+    <style>
+      .lbl { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    </style>
+  </defs>
+
+  <!-- top layer: natural language -->
+  <rect x="180" y="70" width="470" height="58" rx="10" fill="#8957E5"/>
+  <text class="lbl" x="205" y="99" font-size="19" font-weight="600" fill="#ffffff">Natural language</text>
+  <text class="lbl" x="205" y="117" font-size="13" fill="#E5D9FA">Claude Code — you instruct in your own words</text>
+  <text class="lbl" x="668" y="97" font-size="13" font-weight="600" fill="#8B949E">you work</text>
+  <text class="lbl" x="668" y="113" font-size="13" font-weight="600" fill="#8B949E">here</text>
+
+  <!-- the missing boundary -->
+  <line x1="180" y1="153" x2="650" y2="153" stroke="#F85149" stroke-width="3" stroke-dasharray="10 9"/>
+  <text class="lbl" x="180" y="146" font-size="13" font-weight="600" fill="#F85149">no boundary — implementation detail leaks upward</text>
+
+  <!-- lower layers -->
+  <rect x="180" y="178" width="470" height="52" rx="10" fill="#1F6FEB"/>
+  <text class="lbl" x="205" y="209" font-size="17" font-weight="600" fill="#ffffff">Python  ·  C#  ·  Go</text>
+  <text class="lbl" x="668" y="209" font-size="13" fill="#8B949E">hides C</text>
+
+  <rect x="180" y="244" width="470" height="52" rx="10" fill="#1A5FB4"/>
+  <text class="lbl" x="205" y="275" font-size="17" font-weight="600" fill="#ffffff">C</text>
+  <text class="lbl" x="668" y="275" font-size="13" fill="#8B949E">hides assembly</text>
+
+  <rect x="180" y="310" width="470" height="52" rx="10" fill="#4A5A6A"/>
+  <text class="lbl" x="205" y="341" font-size="17" font-weight="600" fill="#ffffff">Assembly</text>
+  <text class="lbl" x="668" y="341" font-size="13" fill="#8B949E">hides the machine</text>
+
+  <rect x="180" y="376" width="470" height="52" rx="10" fill="#3D444D"/>
+  <text class="lbl" x="205" y="407" font-size="17" font-weight="600" fill="#ffffff">Machine code</text>
+
+  <!-- solid boundaries between the lower layers -->
+  <line x1="180" y1="237" x2="650" y2="237" stroke="#57D364" stroke-width="2"/>
+  <line x1="180" y1="303" x2="650" y2="303" stroke="#57D364" stroke-width="2"/>
+  <line x1="180" y1="369" x2="650" y2="369" stroke="#57D364" stroke-width="2"/>
+
+  <!-- left rail -->
+  <line x1="120" y1="410" x2="120" y2="105" stroke="#8B949E" stroke-width="2"/>
+  <path d="M120 96 l-6 12 h12 z" fill="#8B949E"/>
+  <text class="lbl" x="104" y="300" font-size="13" fill="#8B949E" text-anchor="middle" transform="rotate(-90 104 300)">each layer hides the one below</text>
+
+  <!-- key -->
+  <line x1="700" y1="425" x2="726" y2="425" stroke="#57D364" stroke-width="2"/>
+  <text class="lbl" x="734" y="429" font-size="12" fill="#8B949E">hard boundary</text>
+  <line x1="700" y1="447" x2="726" y2="447" stroke="#F85149" stroke-width="3" stroke-dasharray="8 7"/>
+  <text class="lbl" x="734" y="451" font-size="12" fill="#8B949E">leaks</text>
+</svg>

@@ -1,0 +1,19 @@
+I bumped the database version and disk type in our infrastructure config. Here is what the tool says it will do. Safe to apply?
+
+Terraform will perform the following actions:
+
+  # aws_db_instance.main must be replaced
+-/+ resource "aws_db_instance" "main" {
+      ~ address                 = "prod-orders.c9x.eu-west-1.rds.amazonaws.com" -> (known after apply)
+      ~ allocated_storage       = 500 -> 1000
+      ~ arn                     = "arn:aws:rds:eu-west-1:4471:db:prod-orders" -> (known after apply)
+      ~ engine_version          = "14.7" -> "16.2" # forces replacement
+      ~ id                      = "prod-orders" -> (known after apply)
+        identifier              = "prod-orders"
+      ~ storage_type            = "gp2" -> "io2"   # forces replacement
+        skip_final_snapshot     = true
+        deletion_protection     = false
+      ~ latest_restorable_time  = "2026-08-23T02:11:04Z" -> (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 1 to destroy.

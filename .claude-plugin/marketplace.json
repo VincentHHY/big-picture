@@ -1,0 +1,22 @@
+{
+  "name": "big-picture",
+  "description": "Answers you can judge and act on without reading code \u2014 Claude Code plugins that keep implementation detail below a marked line. Off by default, armed one session at a time.",
+  "owner": {
+    "name": "VincentHan"
+  },
+  "plugins": [
+    {
+      "name": "decision-layer",
+      "description": "Answer at the decision level - plain language you can judge and decide on, with code, paths and line numbers kept below a marked line. Armed per session, off by default.",
+      "version": "1.0.0",
+      "source": "./plugins/decision-layer",
+      "category": "Productivity",
+      "keywords": [
+        "output-style",
+        "communication",
+        "hooks",
+        "writing"
+      ]
+    }
+  ]
+}

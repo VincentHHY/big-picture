@@ -1,0 +1,20 @@
+The tests all pass on my machine but keep failing in CI, and not always the same ones. I have re-run it four times. What should I do?
+
+FAIL  src/checkout/total.test.ts > applies weekend surcharge
+  AssertionError: expected 114.5 to be 110
+   ❯ src/checkout/total.test.ts:41:32
+
+FAIL  src/orders/expiry.test.ts > marks orders stale after 30 days
+  AssertionError: expected false to be true
+   ❯ src/orders/expiry.test.ts:88:24
+
+  Test Files  2 failed | 61 passed (63)
+       Tests  2 failed | 418 passed (420)
+
+$ grep -rn "new Date()" src/ | wc -l
+37
+$ cat .github/workflows/ci.yml | grep -A2 "env:"
+    env:
+      TZ: UTC
+$ node -e "console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)"
+Europe/London

@@ -1,0 +1,42 @@
+{
+  "reviewer": "silent-failure-hunter",
+  "target": "report_builder.py @ 4c19aa2",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "CRITICAL",
+      "file": "report_builder.py",
+      "line": 30,
+      "symbol": "site_averages",
+      "title": "Divisor includes rows the filter discarded",
+      "detail": "seen[row['site']] is incremented before the is_usable() guard, so the denominator counts suspect readings that never contributed to totals[]. Every site containing at least one suspect row reports an average below the true value. Sites where all rows are suspect divide by a non-zero seen count against a zero total, silently reporting 0.0 rather than raising."
+    },
+    {
+      "id": 2,
+      "severity": "IMPORTANT",
+      "file": "report_builder.py",
+      "line": 17,
+      "symbol": "is_usable",
+      "title": "float() conversion is unguarded",
+      "detail": "is_usable() only checks for an empty string. A non-numeric value such as 'n/a' passes the guard and raises ValueError inside site_averages(), aborting the whole nightly run rather than skipping one reading."
+    },
+    {
+      "id": 3,
+      "severity": "SUGGESTION",
+      "file": "report_builder.py",
+      "line": 41,
+      "symbol": "main",
+      "title": "Hardcoded filenames",
+      "detail": "main() hardcodes raw_meters.csv and dashboard.csv relative to the working directory, so the job breaks if cron runs it from anywhere other than /opt/rollup."
+    },
+    {
+      "id": 4,
+      "severity": "NITPICK",
+      "file": "report_builder.py",
+      "line": 8,
+      "symbol": "SUSPECT_FLAGS",
+      "title": "Flag set is undocumented",
+      "detail": "The meaning of 'E', 'X' and '?' is not recorded anywhere in the module."
+    }
+  ]
+}

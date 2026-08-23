@@ -1,0 +1,14 @@
+{
+  "name": "decision-layer",
+  "version": "1.0.0",
+  "description": "Answer at the decision level - plain language you can judge and decide on, with code, paths and line numbers kept below a marked line. Armed per session with /decision-layer, off by default.",
+  "author": {
+    "name": "VincentHan"
+  },
+  "keywords": [
+    "output-style",
+    "communication",
+    "hooks",
+    "writing"
+  ]
+}

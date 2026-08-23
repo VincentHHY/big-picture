@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 350" width="900" height="350" role="img" aria-label="A dense technical reply on the left passes through the decision-layer boundary and becomes, on the right, a short plain-language decision with the implementation detail kept below a marked line.">
+<defs><style>.lbl{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}</style></defs>
+<text class="lbl" x="40" y="42" font-size="14" font-weight="600" fill="#8B949E">what the agent worked out</text>
+<rect x="40" y="56" width="320" height="256" rx="10" fill="none" stroke="#6E7681" stroke-width="1.5"/>
+<rect x="60" y="78" width="210" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="94" width="285" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="110" width="282" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="126" width="135" height="7" rx="3.5" fill="#F85149" opacity="0.85"/>
+<rect x="60" y="142" width="210" height="7" rx="3.5" fill="#F85149" opacity="0.85"/>
+<rect x="60" y="158" width="250" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="174" width="265" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="190" width="250" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="206" width="170" height="7" rx="3.5" fill="#F85149" opacity="0.85"/>
+<rect x="60" y="222" width="265" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="238" width="250" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="254" width="265" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="270" width="245" height="7" rx="3.5" fill="#F85149" opacity="0.85"/>
+<rect x="60" y="286" width="250" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<rect x="60" y="302" width="250" height="7" rx="3.5" fill="#8B949E" opacity="0.55"/>
+<text class="lbl" x="200" y="330" font-size="12" fill="#F85149" text-anchor="middle">paths · symbols · versions · quoted output</text>
+<line x1="385" y1="184" x2="505" y2="184" stroke="#8957E5" stroke-width="2.5"/>
+<path d="M516 184 l-13 -7 v14 z" fill="#8957E5"/>
+<text class="lbl" x="445" y="172" font-size="13" font-weight="600" fill="#8957E5" text-anchor="middle">decision-layer</text>
+<text class="lbl" x="445" y="204" font-size="11" fill="#8B949E" text-anchor="middle">sufficiency test</text>
+<text class="lbl" x="540" y="42" font-size="14" font-weight="600" fill="#8B949E">what reaches you</text>
+<rect x="540" y="56" width="320" height="256" rx="10" fill="none" stroke="#6E7681" stroke-width="1.5"/>
+<rect x="560" y="84" width="270" height="10" rx="5" fill="#8957E5" opacity="0.9"/>
+<rect x="560" y="106" width="240" height="10" rx="5" fill="#8957E5" opacity="0.9"/>
+<rect x="560" y="128" width="285" height="10" rx="5" fill="#8957E5" opacity="0.9"/>
+<rect x="560" y="160" width="250" height="10" rx="5" fill="#8957E5" opacity="0.9"/>
+<rect x="560" y="182" width="215" height="10" rx="5" fill="#8957E5" opacity="0.9"/>
+<line x1="560" y1="232" x2="840" y2="232" stroke="#8B949E" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text class="lbl" x="560" y="226" font-size="11" fill="#8B949E">--- where ---</text>
+<rect x="560" y="246" width="240" height="6" rx="3" fill="#8B949E" opacity="0.45"/>
+<rect x="560" y="259" width="200" height="6" rx="3" fill="#8B949E" opacity="0.45"/>
+<rect x="560" y="272" width="265" height="6" rx="3" fill="#8B949E" opacity="0.45"/>
+<text class="lbl" x="840" y="298" font-size="12" font-weight="600" fill="#8957E5" text-anchor="end">▪ decision-layer</text>
+<text class="lbl" x="700" y="330" font-size="12" fill="#8B949E" text-anchor="middle">the detail is moved, not destroyed</text>
+</svg>

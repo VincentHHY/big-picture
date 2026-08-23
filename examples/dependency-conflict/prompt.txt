@@ -1,0 +1,16 @@
+Release is meant to go out tonight and the build now fails on the server but works on my laptop. Ops pasted this. What should we do?
+
+Exception in thread "main" java.lang.NoSuchMethodError: 'void com.google.common.base.Preconditions.checkArgument(boolean, java.lang.String, java.lang.Object)'
+	at org.apache.hadoop.conf.Configuration.set(Configuration.java:1357)
+	at com.acme.ingest.SinkFactory.build(SinkFactory.java:88)
+	at com.acme.ingest.Main.main(Main.java:41)
+
+$ mvn dependency:tree -Dincludes=com.google.guava
+[INFO] com.acme:ingest:jar:7.4.0
+[INFO] +- com.acme:acme-storage:jar:3.2.0:compile
+[INFO] |  \- com.google.guava:guava:jar:19.0:compile
+[INFO] +- org.apache.hadoop:hadoop-common:jar:3.3.6:compile
+[INFO] |  \- com.google.guava:guava:jar:27.0-jre:compile  (omitted for conflict with 19.0)
+[INFO] \- com.acme:acme-metrics:jar:1.9.4:compile
+[INFO]    \- com.google.guava:guava:jar:32.1.3-jre:compile (omitted for conflict with 19.0)
+[WARNING] Used undeclared dependencies found: com.google.guava:guava:jar:19.0

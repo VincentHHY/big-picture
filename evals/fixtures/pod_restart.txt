@@ -1,0 +1,41 @@
+$ kubectl describe pod rollup-worker-7d4f8b6c9-x2vlt -n metering
+Name:             rollup-worker-7d4f8b6c9-x2vlt
+Namespace:        metering
+Status:           Running
+Restart Count:    47
+
+Containers:
+  worker:
+    Image:          registry.internal/metering/rollup-worker:2.14.0
+    State:          Running
+      Started:      Sat, 22 Aug 2026 03:41:02 +0000
+    Last State:     Terminated
+      Reason:       OOMKilled
+      Exit Code:    137
+      Started:      Sat, 22 Aug 2026 03:38:55 +0000
+      Finished:     Sat, 22 Aug 2026 03:41:01 +0000
+    Limits:
+      memory:       256Mi
+    Requests:
+      memory:       128Mi
+    Liveness:       http-get http://:8080/healthz delay=10s timeout=1s period=10s #failure=3
+
+Events:
+  Type     Reason     Age                    From     Message
+  ----     ------     ----                   ----     -------
+  Warning  BackOff    2m (x312 over 18h)     kubelet  Back-off restarting failed container
+  Normal   Pulled     2m (x47 over 18h)      kubelet  Container image already present on machine
+
+--- helm/values.yaml (excerpt) ---
+worker:
+  replicaCount: 1
+  resources:
+    limits:
+      memory: 256Mi
+      cpu: 500m
+    requests:
+      memory: 128Mi
+      cpu: 100m
+  env:
+    - name: ROLLUP_BATCH_SIZE
+      value: "50000"

@@ -1,0 +1,26 @@
+$ python -m rollup.nightly --date 2026-08-22
+Traceback (most recent call last):
+  File "/opt/rollup/nightly.py", line 88, in <module>
+    main()
+  File "/opt/rollup/nightly.py", line 71, in main
+    write_dashboard(site_averages(rows), "dashboard.csv")
+  File "/opt/rollup/report_builder.py", line 30, in site_averages
+    return {site: totals[site] / seen[site] for site in totals}
+  File "/opt/rollup/report_builder.py", line 30, in <dictcomp>
+    return {site: totals[site] / seen[site] for site in totals}
+ZeroDivisionError: division by zero
+
+$ pip install -r requirements.txt
+ERROR: Cannot install pandas==2.1.4 and pyarrow==11.0.0 because these package versions have conflicting dependencies.
+
+The conflict is caused by:
+    pandas 2.1.4 depends on numpy>=1.26.0
+    pyarrow 11.0.0 depends on numpy<1.24 and >=1.16.6
+    The user requested numpy==1.23.5
+
+To fix this you could try to:
+1. loosen the range of package versions you've specified
+2. remove package versions to allow pip to attempt to solve the dependency conflict
+
+ERROR: ResolutionImpossible: for help visit
+https://pip.pypa.io/en/latest/topics/dependency-resolution/#dealing-with-dependency-conflicts

@@ -1,0 +1,365 @@
+{
+  "skill_name": "decision-layer",
+  "notes": [
+    "Every case runs as a real `claude -p --session-id <uuid>` session with the arming flag",
+    "pre-written, so the live hook and the live output style are what get exercised.",
+    "Cases marked control_arm also run unarmed. An assertion that passes in BOTH arms is not",
+    "measuring the boundary and should be deleted.",
+    "Graders: mechanical = script. blind = sees ONLY the reply, which is the user's real",
+    "situation. sighted = sees the reply and the fixture, and only judges correctness.",
+    "Prompts use {FIXTURES}, replaced per run with a private copy of the fixtures dir. One case asks for the bug to be FIXED, and a shared fixture would let that run silently rewrite the input every later run depends on.",
+    "Cases serve one of two purposes and they have opposite success conditions. A DISCRIMINATOR must score differently armed and unarmed or it is measuring nothing. A GUARD (see invariants) must always pass. Do not prune a guard for always passing."
+  ],
+  "common_assertions": [
+    {
+      "text": "A reader who has never written a line of this language can follow what is going on",
+      "grader": "blind"
+    },
+    {
+      "text": "Nothing above the line requires the code in hand to make sense of it",
+      "grader": "blind"
+    },
+    {
+      "text": "Any unavoidable technical term is glossed in plain words the first time it appears",
+      "grader": "blind"
+    },
+    {
+      "text": "No sentence mixes plain English with a raw symbol, path or line number",
+      "grader": "blind"
+    },
+    {
+      "text": "The reply is specific: it says what is actually wrong, not just that something is",
+      "grader": "blind"
+    }
+  ],
+  "evals": [
+    {
+      "id": 0,
+      "name": "decide-python",
+      "prompt": "The site averages this script produces are coming out too low. Have a look at {FIXTURES}/report_builder.py and tell me what I should do about it.",
+      "context": "A genuine either/or in a language the reader does not know. Paired with decide-csharp: same bug, same wording, different language.",
+      "expected_output": "A plain-English account of why the numbers are low, and a choice between the quick fix and the structural one stated by what the reader would feel, not by what the code does.",
+      "expect": {
+        "boundary": "on"
+      },
+      "control_arm": true,
+      "assertions": [
+        {
+          "text": "Offers a real choice, not a single recommendation dressed as one",
+          "grader": "blind"
+        },
+        {
+          "text": "States each option by its consequence - speed, risk, what breaks, what gets harder later",
+          "grader": "blind"
+        },
+        {
+          "text": "I could pick one of the options without asking a follow-up question",
+          "grader": "blind"
+        },
+        {
+          "text": "The cause it describes is the divisor counting rows the filter threw away",
+          "grader": "sighted"
+        },
+        {
+          "text": "Every option it offers would actually address the low averages",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "understand-no-decision",
+      "prompt": "I have never seen this script before and I did not write it. What does {FIXTURES}/report_builder.py actually do? I am not asking you to change anything.",
+      "context": "Founding goal: understand. There is no decision anywhere in this turn, which is the shape the current rules do not cover at all.",
+      "expected_output": "A plain-English account of what the program does end to end. No choice, no recommendation, no invented decision.",
+      "expect": {
+        "boundary": "on"
+      },
+      "control_arm": true,
+      "assertions": [
+        {
+          "text": "Explains the whole job the script does, start to finish",
+          "grader": "blind"
+        },
+        {
+          "text": "Does not manufacture a decision or a recommendation that was not asked for",
+          "grader": "blind"
+        },
+        {
+          "text": "I could describe this program to someone else after reading only this reply",
+          "grader": "blind"
+        },
+        {
+          "text": "The description matches what the code actually does",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "reason-why-it-broke",
+      "prompt": "Do not fix anything yet. I just want to understand how the averages ended up wrong in {FIXTURES}/report_builder.py. Walk me through how it happens.",
+      "context": "Founding goal: reason. A causal chain with no decision in it.",
+      "expected_output": "A step-by-step causal account in plain English: what the program intends, where the two counts drift apart, and why that pushes the number down.",
+      "expect": {
+        "boundary": "on"
+      },
+      "assertions": [
+        {
+          "text": "Gives a causal chain I can follow step by step, not a single assertion of the cause",
+          "grader": "blind"
+        },
+        {
+          "text": "Explains why the error pushes the number DOWN specifically, not merely that it is wrong",
+          "grader": "blind"
+        },
+        {
+          "text": "Respects the request and does not fix anything or push a fix",
+          "grader": "blind"
+        },
+        {
+          "text": "The causal chain is actually correct",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "max-pressure-traceback",
+      "prompt": "The nightly job died and then I could not even reinstall it. Here is everything it printed: {FIXTURES}/nightly_failure.txt. What is going on and what do I do?",
+      "context": "The contract under maximum pressure. Two unrelated failures, both of which come wrapped in dense language-specific output.",
+      "expected_output": "Two separate problems named plainly and kept apart, each with what it means for the reader and what to do.",
+      "expect": {
+        "boundary": "on"
+      },
+      "control_arm": true,
+      "assertions": [
+        {
+          "text": "Separates the two failures instead of blurring them into one problem",
+          "grader": "blind"
+        },
+        {
+          "text": "Says which one blocks the other, or that they are independent",
+          "grader": "blind"
+        },
+        {
+          "text": "The stack trace is not reproduced above the line",
+          "grader": "blind"
+        },
+        {
+          "text": "Both diagnoses are correct: a divide by zero, and a three-way version clash",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "decide-csharp",
+      "prompt": "The site averages this code produces are coming out too low. Have a look at {FIXTURES}/ReportBuilder.cs and tell me what I should do about it.",
+      "context": "THE EXPERIMENT. Word-for-word the same request as decide-python, same bug, but in the language the reader knows well. The contract says the boundary holds identically. If this arm leaks more, the output style's line about the reader having 'chosen' the decision level rather than being unable to read the code is doing measurable damage.",
+      "expected_output": "Indistinguishable in shape from decide-python. Same plainness, same footer, same discipline above the line.",
+      "expect": {
+        "boundary": "on"
+      },
+      "assertions": [
+        {
+          "text": "Offers a real choice, not a single recommendation dressed as one",
+          "grader": "blind"
+        },
+        {
+          "text": "States each option by its consequence rather than by what the code does",
+          "grader": "blind"
+        },
+        {
+          "text": "Nothing in the reply assumes I can read this language",
+          "grader": "blind"
+        },
+        {
+          "text": "The cause it describes is the divisor counting rows the filter threw away",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "verbatim-error",
+      "prompt": "Never mind the diagnosis. What exactly did it say when it failed? I want the wording. It is in {FIXTURES}/nightly_failure.txt.",
+      "context": "The honest exception. The style says quoting an error word for word is honest and summarising it is a small lie. A regex-only scorer would mark this a failure, which is exactly why the scorer cannot be regex-only.",
+      "expected_output": "The error quoted word for word. The boundary steps aside for what was directly asked for, and does not paraphrase it.",
+      "expect": {
+        "boundary": "off",
+        "allow_quote": true
+      },
+      "assertions": [
+        {
+          "text": "The error text is reproduced word for word, not summarised or paraphrased",
+          "grader": "blind"
+        },
+        {
+          "text": "Answers the question that was asked rather than returning to the diagnosis",
+          "grader": "blind"
+        },
+        {
+          "text": "The quoted wording matches the fixture exactly",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "asked-for-code",
+      "prompt": "Show me the function that works out the average in {FIXTURES}/report_builder.py.",
+      "context": "Crossing the boundary on purpose, in words. Asking for code is itself a decision the reader made, so the boundary drops for this reply and the footer goes with it.",
+      "expected_output": "The function, shown in full. No boundary, no footer.",
+      "expect": {
+        "boundary": "off"
+      },
+      "assertions": [
+        {
+          "text": "The code that was asked for is actually shown",
+          "grader": "blind"
+        },
+        {
+          "text": "Does not lecture about the boundary or apologise for showing code",
+          "grader": "blind"
+        },
+        {
+          "text": "The function shown is the one that computes the averages",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "impl-escape",
+      "prompt": "--impl what is the actual fix here? Give me the changed lines for {FIXTURES}/report_builder.py.",
+      "context": "Crossing the boundary on purpose, by flag. The hook sends no marker at all, so the turn is simply not armed and there is nothing for the model to detect.",
+      "expected_output": "An ordinary technical reply with the changed lines. No boundary, no footer.",
+      "expect": {
+        "boundary": "off"
+      },
+      "assertions": [
+        {
+          "text": "Gives the concrete changed lines",
+          "grader": "sighted"
+        },
+        {
+          "text": "The fix would actually correct the low averages",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "consequence-free-choice",
+      "prompt": "Just go ahead and sort out the low averages in {FIXTURES}/report_builder.py. Pick whichever way you think is right.",
+      "context": "Tests the second half of recast-then-own. Several small choices have no consequence the reader could feel. Those are the model's to make silently - not to report, not to list at the end, not to ask about.",
+      "expected_output": "Says what was done and what it means. Does not enumerate the choices it made along the way that the reader could not have judged anyway.",
+      "expect": {
+        "boundary": "on"
+      },
+      "assertions": [
+        {
+          "text": "Does not present me with choices I have no way of judging",
+          "grader": "blind"
+        },
+        {
+          "text": "Does not append a list of decisions it made along the way",
+          "grader": "blind"
+        },
+        {
+          "text": "I know what changed and what it means for me, in one read",
+          "grader": "blind"
+        },
+        {
+          "text": "The approach it took would actually fix the reported symptom",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "subagent-relay",
+      "prompt": "A reviewer went over that script and wrote up what it found: {FIXTURES}/reviewer_report.json. What did it find, and does any of it actually need me?",
+      "context": "The likeliest leak path. Relaying someone else's technical report is where detail slips through, because the model is quoting rather than composing.",
+      "expected_output": "The findings recast into plain English, sorted by whether the reader has to decide anything, with the ones that do not need them said so.",
+      "expect": {
+        "boundary": "on"
+      },
+      "control_arm": true,
+      "assertions": [
+        {
+          "text": "The report's technical wording is recast, not passed through",
+          "grader": "blind"
+        },
+        {
+          "text": "Separates what needs me from what does not",
+          "grader": "blind"
+        },
+        {
+          "text": "I can tell how serious each finding is without knowing the severity labels",
+          "grader": "blind"
+        },
+        {
+          "text": "All four findings are accounted for",
+          "grader": "sighted"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "unfamiliar-stack",
+      "prompt": "This pod keeps restarting and I do not really know Kubernetes. Here is what I could get out of it: {FIXTURES}/pod_restart.txt. What is happening and what should I do?",
+      "context": "The founding case in its purest form: a stack the reader is a beginner in. Every term here is jargon to them, so the glossing rule carries the whole reply.",
+      "expected_output": "A plain-English account of why the container keeps dying, and a choice between giving it more memory and making it use less, each stated by what it costs.",
+      "expect": {
+        "boundary": "on"
+      },
+      "assertions": [
+        {
+          "text": "Explains what is happening without assuming I know what a pod, a limit or OOM means",
+          "grader": "blind"
+        },
+        {
+          "text": "Offers a choice stated by cost, not by which setting to edit",
+          "grader": "blind"
+        },
+        {
+          "text": "I could act on this having never used Kubernetes",
+          "grader": "blind"
+        },
+        {
+          "text": "Correctly identifies the container being killed for exceeding its memory limit",
+          "grader": "sighted"
+        },
+        {
+          "text": "Connects the large batch size to the memory use",
+          "grader": "sighted"
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "name": "language-invariance",
+      "a": "decide-python",
+      "b": "decide-csharp",
+      "arm": "armed",
+      "holds": "The boundary must not depend on what language the reader is assumed to know. Same bug, same request, one language the reader knows well and one they do not.",
+      "why_it_matters": "This is a GUARD, not a discriminator. Passing every time is the correct outcome and is not a reason to delete it - its whole value is the day it stops passing. Nothing else in the suite covers this property, and it is the founding invariant of the skill: the reader may genuinely be unable to read the language, so the contract cannot quietly relax when the model judges them fluent.",
+      "not_a_soft_test": "The user's global CLAUDE.md states they are fluent in C#/.NET and asks to be spared the basics there. So there is a real pull toward treating the C# reply differently. A level result here is evidence the boundary resisted that pull, not evidence that nothing could have failed.",
+      "measured_by": "A paired comparison (compare.py) read against its control. Two independent pass rates are too blunt to catch a small difference; a paired comparison alone is too sensitive and flags a difference between almost any two replies. Only the pair-versus-control ratio means anything.",
+      "control": "same-language-control",
+      "verdict_rule": "HOLDS while its difference rate is no worse than the control's. Never read it against zero. Measured 2026-08-23: cross-language 3 of 5 runs found a difference, same-language control 4 of 5. Two runs of the SAME case differ more than the two languages do, so the language effect is inside the noise and the invariant holds."
+    },
+    {
+      "name": "same-language-control",
+      "a": "decide-python",
+      "b": "decide-python",
+      "b_run_offset": 1,
+      "arm": "armed",
+      "holds": "Calibration, not a guard. Compares one case against ITSELF on a different run, to measure how much two independently generated replies differ for no reason at all.",
+      "why_it_matters": "Without this, the language-invariance result cannot be read. A comparator asked whether either reply assumes more will find something between ANY two separate replies. This measures that floor. A cross-language difference only counts if it clearly beats the same-language rate."
+    }
+  ]
+}
