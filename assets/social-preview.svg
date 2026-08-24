@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs><style>.f{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}</style></defs>
+  <rect x="0" y="0" width="1280" height="640" fill="#0d1117"/>
+
+  <text class="f" x="80" y="215" font-size="78" font-weight="700" fill="#E6EDF3">Big Picture</text>
+  <text class="f" x="80" y="285" font-size="30" fill="#8B949E">Answers you can judge and act on —</text>
+  <text class="f" x="80" y="327" font-size="30" fill="#8B949E">without reading code.</text>
+
+  <rect x="80" y="378" width="7" height="86" rx="3.5" fill="#8957E5"/>
+  <text class="f" x="106" y="408" font-size="22" fill="#C9D1D9">Implementation detail stays</text>
+  <text class="f" x="106" y="440" font-size="22" fill="#C9D1D9">below a marked line.</text>
+
+  <text class="f" x="80" y="556" font-size="22" font-weight="600" fill="#8957E5">github.com/VincentHHY/big-picture</text>
+
+  <!-- the ladder, compressed -->
+  <rect x="756" y="140" width="444" height="60" rx="9" fill="#8957E5"/>
+  <text class="f" x="778" y="178" font-size="23" font-weight="600" fill="#ffffff">Natural language</text>
+
+  <line x1="756" y1="218" x2="1200" y2="218" stroke="#F85149" stroke-width="3" stroke-dasharray="10 9"/>
+  <text class="f" x="756" y="238" font-size="16" font-weight="600" fill="#F85149">no boundary — the code leaks up</text>
+
+  <rect x="756" y="256" width="444" height="54" rx="9" fill="#1F6FEB"/>
+  <text class="f" x="778" y="290" font-size="21" font-weight="600" fill="#ffffff">Python · C# · Go</text>
+  <line x1="756" y1="317" x2="1200" y2="317" stroke="#57D364" stroke-width="2"/>
+
+  <rect x="756" y="324" width="444" height="54" rx="9" fill="#1A5FB4"/>
+  <text class="f" x="778" y="358" font-size="21" font-weight="600" fill="#ffffff">C</text>
+  <line x1="756" y1="385" x2="1200" y2="385" stroke="#57D364" stroke-width="2"/>
+
+  <rect x="756" y="392" width="444" height="54" rx="9" fill="#4A5A6A"/>
+  <text class="f" x="778" y="426" font-size="21" font-weight="600" fill="#ffffff">Assembly</text>
+  <line x1="756" y1="453" x2="1200" y2="453" stroke="#57D364" stroke-width="2"/>
+
+  <rect x="756" y="460" width="444" height="54" rx="9" fill="#3D444D"/>
+  <text class="f" x="778" y="494" font-size="21" font-weight="600" fill="#ffffff">Machine code</text>
+</svg>
