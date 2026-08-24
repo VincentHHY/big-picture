@@ -45,8 +45,9 @@ of every session — without the style, arming writes its flag and nothing else 
 is the one failure that leaves no trace.
 
 Requires **`bash`** and **Python 3** on `PATH` (`python3`, `python` or `py`). macOS and
-Linux have both; on Windows, Git Bash provides `bash`. Without `bash` the hook never runs,
-so the boundary simply never turns on — no error, and no footer.
+Linux have both; on Windows, Git Bash provides `bash`, and the launcher steps over the
+Microsoft Store's `python3` and `python` placeholders to reach a real one. Without either
+the hook never runs, so the boundary simply never turns on — no error, and no footer.
 
 ## Use
 
@@ -54,14 +55,22 @@ so the boundary simply never turns on — no error, and no footer.
 |---|---|
 | `/decision-layer` | On, for this session |
 | `/decision-layer off` | Off, for this session |
-| `--impl` anywhere in a message | Off for that **one** reply, then back on |
-| `--impl-off` anywhere in a message | Off for the session |
+| `--impl` on a message's first or last line | Off for that **one** reply, then back on |
+| `--impl-off` on a message's first or last line | Off for the session |
+
+The command menu lists this as `decision-layer:decision-layer`, the same word twice, because
+Claude Code files every skill a plugin ships under the plugin's own name and both are called
+the same thing. Type the short `/decision-layer`; it is registered too, and it is the one to
+use.
 
 Asking for code in plain words — "show me that function", "what does the error actually say" —
 also drops the boundary for that one reply. Asking for code is itself a decision you made.
 
 The two `--` switches are handled by the hook, not by the model, so they still work mid-run
-when Claude is busy and not reading carefully.
+when Claude is busy and not reading carefully. Each counts only as a word standing on its
+own at the top or the bottom of a message, which is where you would reach for one. Quoting
+a switch anywhere else does nothing, so pasting a transcript — or this page, which names
+both of them — leaves the boundary exactly as it was.
 
 ## Does it actually work?
 

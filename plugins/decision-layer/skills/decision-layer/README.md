@@ -31,9 +31,14 @@ your confirmation that the arming took.
 ## Switching it off
 
 - `/decision-layer off` - off for the session.
-- `--impl-off` typed anywhere in an ordinary message - the same thing, handled by the hook,
-  so it works mid-run when you are busy and not reading carefully.
-- `--impl` typed anywhere in a message - off for that **one reply**, then back on by itself.
+- `--impl-off` on the first or last line of an ordinary message - the same thing, handled by
+  the hook, so it works mid-run when you are busy and not reading carefully.
+- `--impl` on the first or last line of a message - off for that **one reply**, then back on
+  by itself.
+
+A switch counts only as a word of its own on one of those two lines. It used to count
+anywhere in the message, which meant pasting this plugin's own documentation into an armed
+session switched it off, with nothing on screen to say so.
 
 Asking for code in plain words - "show me that function", "what does the error say" - also
 drops the boundary for that one reply.

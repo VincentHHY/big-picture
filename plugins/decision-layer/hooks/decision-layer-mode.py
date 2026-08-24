@@ -19,8 +19,9 @@ Three hook events, because Claude Code splits them:
   UserPromptSubmit     fires for ordinary text. While the session is armed, send the marker
                        so the style engages for that turn. "--impl" suppresses the marker
                        for one turn (the escape hatch); "--impl-off" disarms the session
-                       outright. Both are handled here, so neither depends on the model
-                       reading anything.
+                       outright. Either counts only as a word of its own on the first or
+                       last line of the message, so quoting one does not throw it. Both are
+                       handled here, so neither depends on the model reading anything.
 
 Armed state is one file per session, under the user's config directory:
 state/decision-layer-<session_id>. Keyed by session id because several sessions can run on one
@@ -147,6 +148,20 @@ def disarm(session_id):
         log(session_id + " disarmed")
     except FileNotFoundError:
         pass
+
+
+def switch_typed(prompt, switch):
+    """Was this switch typed, or merely quoted in passing?
+
+    It counts as typed only as a word of its own on the first or last line. That is where a
+    switch actually gets thrown: at the top or the bottom of whatever is being written,
+    mid-run, without stopping to read. Everywhere else it is nearly always a paste - and
+    this plugin's own documentation names both switches, so honouring them anywhere in a
+    message meant quoting the help text switched the plugin off, with nothing on screen to
+    say it had.
+    """
+    lines = prompt.strip().splitlines()
+    return bool(lines) and (switch in lines[0].split() or switch in lines[-1].split())
 
 
 def marker():
@@ -344,7 +359,7 @@ def run_hook():
 
     # Kill-switch first: --impl-off contains --impl, so testing the escape word first would
     # swallow it and the session would never disarm.
-    if KILL_WORD in prompt:
+    if switch_typed(prompt, KILL_WORD):
         disarm(session_id)
         return
 
@@ -352,7 +367,7 @@ def run_hook():
         return
 
     # One-turn escape. Send no marker, so the style simply does not engage this turn.
-    if ESCAPE_WORD in prompt:
+    if switch_typed(prompt, ESCAPE_WORD):
         return
 
     text = marker()

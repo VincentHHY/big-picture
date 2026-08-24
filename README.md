@@ -189,6 +189,8 @@ machine where that screen does not offer it, put `"outputStyle": "decision-layer
 
 Turn it on for a session with `/decision-layer`, off again with `/decision-layer off`.
 It is **off by default in every new session**, so it never follows you into tomorrow.
+The `/` menu shows the command doubled, as `decision-layer:decision-layer` — that is just
+Claude Code filing the skill under the plugin name. The short form works; type that.
 
 Forget the style step and the plugin tells you at the start of each session. Without it
 selected there is nothing to arm, and that is the one failure you could not otherwise see.

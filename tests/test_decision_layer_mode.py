@@ -8,9 +8,9 @@ those constants at call time rather than at import. So each test redirects
 STATE_DIR / LOG_PATH / SKILL_PATH at a pytest tmp_path and nothing ever writes
 into the real config tree. No production code carries a test-only switch.
 
-The last three tests deliberately read the REAL files instead: they guard the
-wiring between the hook, the skill and the output style, which is the part that
-breaks silently.
+The tests at the end deliberately read the REAL files instead: they guard the
+wiring between the hook, the skill, the output style and the documentation, which
+is the part that breaks silently.
 """
 
 import importlib.util
@@ -205,10 +205,75 @@ def test_impl_off_when_not_armed_does_not_crash(hook, monkeypatch, capsys):
 
 
 def test_a_prompt_merely_mentioning_implementation_still_gets_the_marker(hook, monkeypatch, capsys):
-    """The escape words are matched anywhere, so ordinary prose must not trip them."""
+    """Prose that happens to share the letters is not a switch."""
     hook.arm(SESSION)
     feed(hook, monkeypatch, submit("does the implementation look right?"))
     assert "DECISION-LAYER:ARMED" in emitted_text(capsys)
+
+
+# --------------------------------------------------------------------------
+# where a switch counts: first line, last line, nowhere else
+# --------------------------------------------------------------------------
+
+def quoted(word):
+    """A message that quotes a switch in passing, the way pasted documentation does."""
+    return ("here is the bit of the readme I do not follow:\n\n"
+            "| `" + word + "` | off for that one reply |\n\n"
+            "what does that actually mean?")
+
+
+def test_the_escape_works_on_the_first_line(hook, monkeypatch, capsys):
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit(hook.ESCAPE_WORD + "\nshow me the function"))
+    assert emitted(capsys) is None
+    assert hook.flag_path(SESSION).exists(), "the one-turn escape must not disarm"
+
+
+def test_the_escape_works_on_the_last_line(hook, monkeypatch, capsys):
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit("show me the function\n\n" + hook.ESCAPE_WORD))
+    assert emitted(capsys) is None
+
+
+def test_the_kill_switch_works_on_the_first_line(hook, monkeypatch):
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit(hook.KILL_WORD + "\njust talk normally from now on"))
+    assert not hook.flag_path(SESSION).exists()
+
+
+def test_the_kill_switch_works_on_the_last_line(hook, monkeypatch):
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit("just talk normally from now on\n" + hook.KILL_WORD))
+    assert not hook.flag_path(SESSION).exists()
+
+
+def test_an_escape_buried_mid_message_is_ignored(hook, monkeypatch, capsys):
+    """Quoting a switch is not typing one, and a paste is nearly always a quote."""
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit(quoted(hook.ESCAPE_WORD)))
+    assert "DECISION-LAYER:ARMED" in emitted_text(capsys)
+
+
+def test_a_kill_switch_buried_mid_message_is_ignored(hook, monkeypatch, capsys):
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit(quoted(hook.KILL_WORD)))
+    assert hook.flag_path(SESSION).exists(), "a quoted switch disarmed the session"
+    assert "DECISION-LAYER:ARMED" in emitted_text(capsys)
+
+
+def test_a_switch_glued_to_other_text_is_ignored(hook, monkeypatch, capsys):
+    """On a line that counts, but not standing alone on it, so it is prose."""
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit("mind the `" + hook.ESCAPE_WORD + "`-shaped hole"))
+    assert "DECISION-LAYER:ARMED" in emitted_text(capsys)
+
+
+def test_the_kill_switch_still_wins_over_the_escape(hook, monkeypatch):
+    """One string contains the other, so the kill switch is still tested first. Type both
+    and the session ends, rather than merely skipping a turn."""
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit(hook.ESCAPE_WORD + "\nand also\n" + hook.KILL_WORD))
+    assert not hook.flag_path(SESSION).exists()
 
 
 # --------------------------------------------------------------------------
@@ -434,3 +499,14 @@ def test_every_document_names_the_style_exactly_as_it_registers():
     for path in DOCS:
         text = path.read_text(encoding="utf-8")
         assert registered in text, path.name + " never names " + registered
+
+
+@pytest.mark.parametrize("path", DOCS, ids=lambda p: p.name)
+def test_pasting_our_own_documentation_leaves_the_session_armed(hook, monkeypatch, capsys, path):
+    """The reproduction. Every one of these documents names both switches, so while a switch
+    counted anywhere in a message, quoting one back at an armed session disarmed it - and
+    nothing on screen said so."""
+    hook.arm(SESSION)
+    feed(hook, monkeypatch, submit(path.read_text(encoding="utf-8")))
+    assert hook.flag_path(SESSION).exists(), path.name + " disarmed the session"
+    assert "DECISION-LAYER:ARMED" in emitted_text(capsys)

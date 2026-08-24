@@ -23,10 +23,14 @@ new session because the hook owns that part.
 ## Turning it off
 
 - `/decision-layer off` — off for the session.
-- `--impl-off` typed anywhere in an ordinary message — same thing, handled by the hook, so it
-  works mid-run when the user is busy and not reading carefully.
-- `--impl` typed anywhere in a message — off for that **one reply** only, then back on
-  automatically. Also handled by the hook, so there is nothing to detect.
+- `--impl-off` on the first or last line of an ordinary message — same thing, handled by the
+  hook, so it works mid-run when the user is busy and not reading carefully.
+- `--impl` on the first or last line of a message — off for that **one reply** only, then
+  back on automatically. Also handled by the hook, so there is nothing to detect.
+
+Only those two lines count, and only a switch standing there as a word of its own. Quoting
+one mid-message — pasting a transcript, or this file — is not typing one and changes
+nothing.
 
 A plain request for code — "show me that function", "what does the error say" — also drops
 the boundary for that reply. That one is a judgement call, not a hook.
