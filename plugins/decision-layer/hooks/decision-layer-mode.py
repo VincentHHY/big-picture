@@ -8,11 +8,14 @@ rather than the whole rulebook.
 
 Three hook events, because Claude Code splits them:
 
-  SessionStart         fires once when a session opens. Used only to check that the output
-                       style this plugin ships was actually selected. If it was not, the
-                       whole plugin is inert - arming writes its flag, the marker goes out,
-                       and nothing happens, because the rules live in the style. That failure
-                       is invisible, so say so on screen rather than let it pass.
+  SessionStart         fires once when a session opens. Checks that the output style this
+                       plugin ships was actually selected, and remembers the answer for this
+                       session. If it was not, the whole plugin is inert - arming writes its
+                       flag, the marker goes out, and nothing happens, because the rules live
+                       in the style. That failure is invisible, so say so on screen rather
+                       than let it pass. The remembered answer is what arming consults later:
+                       the style is loaded when a session opens, so selecting it afterwards
+                       cannot help this one, and only the verdict taken at the start knows.
   UserPromptExpansion  fires for a TYPED slash command and carries command_name and
                        command_args. "/decision-layer" arms the session, "/decision-layer
                        off" disarms it, and "/decision-layer setup" selects the output style
@@ -105,6 +108,13 @@ OFF_WORDS = ("off", "stop", "no", "disable")
 # happen to be standing in, so a pick made in one repository leaves every other one without
 # the style. The words people reach for vary; accept the obvious ones.
 SETUP_WORDS = ("setup", "install", "select")
+
+# What was true about the style when this session opened, remembered per session. The style
+# is loaded once, at that moment, so a selection made later - by /decision-layer setup, or by
+# hand - is real everywhere except here. Recording it at the start is the only honest way to
+# know later: reading the settings file at arming time answers a different question.
+STYLE_LOADED = "loaded"
+STYLE_MISSING = "missing"
 
 # The user's own settings file, named the way the documentation names it. The real path goes
 # through CLAUDE_DIR, but a home-relative spelling is what a person can act on.
@@ -262,7 +272,54 @@ def selected_styles():
     return found
 
 
-def check_style_selected():
+def style_state_path(session_id):
+    return STATE_DIR / (SKILL_NAME + "-style-" + session_id)
+
+
+def record_style_state(session_id, loaded):
+    """Remember, at session start, whether the style was there to be loaded."""
+    if not SESSION_RE.match(session_id or ""):
+        return
+    try:
+        STATE_DIR.mkdir(parents=True, exist_ok=True)
+        style_state_path(session_id).write_text(
+            STYLE_LOADED if loaded else STYLE_MISSING, encoding="utf-8")
+    except Exception:
+        pass
+
+
+def style_was_loaded(session_id):
+    """Did this session open with the style? Empty when we never got to record it."""
+    try:
+        return style_state_path(session_id).read_text(encoding="utf-8").strip()
+    except Exception:
+        return ""
+
+
+def arm_report(selected_now):
+    """What to say when arming cannot do anything, which the model has no way to notice.
+
+    Arming writes its flag and sends its marker whatever the style is doing, and the rules the
+    marker points at live in the style. With the style absent the marker points at nothing, so
+    the reply comes back ordinary - and the model, going by the marker alone, announces that
+    the boundary is on. A confident false claim is worse than no boundary: the reader trusts
+    prose that was never written under one.
+    """
+    head = ("The decision-layer boundary CANNOT apply to this session: its output style was "
+            "not loaded when this session opened, so none of its rules are in your prompt. "
+            "Do NOT say the boundary is on, and do not write its footer. ")
+    if selected_now:
+        return head + ("Tell the user the style is selected but this session opened before it "
+                       "was, so it cannot see it - starting a new session, or running /clear, "
+                       "picks it up, and arming there works. Then answer their message "
+                       "normally, with full implementation detail.")
+    return head + ("Tell the user no output style is selected yet, so there is nothing to "
+                   "switch on - running /" + SKILL_NAME + " setup selects it, and it takes "
+                   "effect in a new session or after /clear. Then answer their message "
+                   "normally, with full implementation detail.")
+
+
+def check_style_selected(session_id=""):
     """Say so when the plugin is installed but its output style was never picked.
 
     This is the plugin's quietest way to fail. The rules live in the style, so without it
@@ -275,6 +332,7 @@ def check_style_selected():
     if not ours:
         return
     chosen = selected_styles()
+    record_style_state(session_id, ours in chosen)
     if ours in chosen:
         return
     # Offer the command rather than the picker. Only the terminal has a picker, and the pick
@@ -436,7 +494,7 @@ def run_hook():
 
     # Needs no session id, so it runs before that check rather than after it.
     if payload.get("hook_event_name") == "SessionStart":
-        check_style_selected()
+        check_style_selected(str(payload.get("session_id") or ""))
         return
 
     session_id = str(payload.get("session_id") or "")
@@ -460,7 +518,11 @@ def run_hook():
                  "decision-layer skill instructions and write normally, with full "
                  "implementation detail.", "UserPromptExpansion")
         else:
+            # Arm either way: the flag is harmless, and refusing it would strand anyone whose
+            # session state we failed to record. What changes is what the model is told.
             arm(session_id)
+            if style_was_loaded(session_id) == STYLE_MISSING:
+                emit(arm_report(style_name() in selected_styles()), "UserPromptExpansion")
         return
 
     prompt = str(payload.get("prompt") or "")

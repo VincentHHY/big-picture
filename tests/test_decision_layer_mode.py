@@ -594,6 +594,76 @@ def test_the_warning_offers_the_setup_command(hook, monkeypatch, capsys, tmp_pat
 
 
 # --------------------------------------------------------------------------
+# arming when the style cannot possibly apply
+# --------------------------------------------------------------------------
+
+def open_session(hook, monkeypatch, capsys, tmp_path, with_style):
+    """Open a session the way a real one opens, and swallow the start-up warning."""
+    monkeypatch.chdir(tmp_path)
+    if with_style:
+        select_style(hook, "demo-plugin:Demo")
+    feed(hook, monkeypatch, start())
+    capsys.readouterr()
+
+
+def test_arming_a_session_that_opened_without_the_style_says_it_cannot_apply(
+        hook, monkeypatch, capsys, tmp_path):
+    """The model has no way to see this for itself. Arming looks identical whether the rules
+    exist or not, so left alone it announces a boundary that was never there - and a confident
+    false claim is worse than no boundary, because the reader trusts the prose."""
+    open_session(hook, monkeypatch, capsys, tmp_path, with_style=False)
+    feed(hook, monkeypatch, expand(""))
+    report = emitted_text(capsys)
+    assert "CANNOT apply" in report
+    assert "Do NOT say the boundary is on" in report
+
+
+def test_arming_a_session_that_opened_with_the_style_stays_quiet(
+        hook, monkeypatch, capsys, tmp_path):
+    """The ordinary path must not grow a new message."""
+    open_session(hook, monkeypatch, capsys, tmp_path, with_style=True)
+    feed(hook, monkeypatch, expand(""))
+    assert emitted(capsys) is None
+
+
+def test_setup_then_arming_in_the_same_session_still_says_it_cannot_apply(
+        hook, monkeypatch, capsys, tmp_path):
+    """The reported sequence, end to end: a fresh install, setup, then arming straight away.
+    The style is selected by then, so a settings check would call this fine; the session still
+    opened without it, which is what decides."""
+    open_session(hook, monkeypatch, capsys, tmp_path, with_style=False)
+    feed(hook, monkeypatch, expand("setup"))
+    capsys.readouterr()
+    feed(hook, monkeypatch, expand(""))
+    report = emitted_text(capsys)
+    assert "CANNOT apply" in report
+    assert "this session opened before it" in report, "it blames the wrong cause"
+
+
+def test_arming_before_setup_points_at_setup(hook, monkeypatch, capsys, tmp_path):
+    open_session(hook, monkeypatch, capsys, tmp_path, with_style=False)
+    feed(hook, monkeypatch, expand(""))
+    assert "setup" in emitted_text(capsys)
+
+
+def test_arming_still_sets_the_flag_when_the_style_is_missing(
+        hook, monkeypatch, capsys, tmp_path):
+    """Refusing to arm would strand anyone whose session state we failed to record, and the
+    flag costs nothing. Only what the model is told changes."""
+    open_session(hook, monkeypatch, capsys, tmp_path, with_style=False)
+    feed(hook, monkeypatch, expand(""))
+    capsys.readouterr()
+    assert hook.flag_path(SESSION).exists()
+
+
+def test_arming_is_silent_when_the_session_state_was_never_recorded(hook, monkeypatch, capsys):
+    """No SessionStart, no verdict. Guessing here would announce a broken boundary to sessions
+    that are working, so silence is the safe answer."""
+    feed(hook, monkeypatch, expand(""))
+    assert emitted(capsys) is None
+
+
+# --------------------------------------------------------------------------
 # live wiring - these read the REAL files on purpose
 # --------------------------------------------------------------------------
 
