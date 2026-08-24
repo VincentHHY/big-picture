@@ -1,6 +1,6 @@
 ---
-name: decision-layer
-description: Answers you can judge and decide on without reading code. Armed per session with /decision-layer.
+name: Plain
+description: Claude answers in plain language you can act on, keeping code, file paths and line numbers below a marked line. Armed per session with /decision-layer.
 keep-coding-instructions: true
 ---
 

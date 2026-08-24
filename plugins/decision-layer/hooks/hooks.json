@@ -1,6 +1,16 @@
 {
   "description": "Arms and disarms the decision-layer boundary, one session at a time.",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/decision-layer-mode.sh\""
+          }
+        ]
+      }
+    ],
     "UserPromptExpansion": [
       {
         "hooks": [

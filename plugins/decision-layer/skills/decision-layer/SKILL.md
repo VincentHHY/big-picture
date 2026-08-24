@@ -15,9 +15,10 @@ fired. Arm it by hand:
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/decision-layer-mode.sh" --arm
 ```
 
-If the output style is not selected, arming does nothing. Check with `/output-style` and
-pick `decision-layer` once; the selection is remembered, and the boundary still starts off
-in every new session because the hook owns that part.
+If the output style is not selected, arming does nothing. The session-start hook already
+says so on screen when that happens; the fix is to pick `decision-layer:Plain` in `/config`
+under Output style. The selection is remembered, and the boundary still starts off in every
+new session because the hook owns that part.
 
 ## Turning it off
 

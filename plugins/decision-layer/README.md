@@ -26,14 +26,23 @@ follow you into tomorrow.
 /plugin install decision-layer@big-picture
 ```
 
-Then select the output style once:
+Then select the output style once, in `/config` → **Output style** → **`decision-layer:Plain`**.
 
+On a machine where that screen does not offer the option, put it in `~/.claude/settings.json`
+by hand and restart:
+
+```json
+"outputStyle": "decision-layer:Plain"
 ```
-/output-style decision-layer
-```
+
+The name carries the plugin in front of it because Claude Code registers every
+plugin-supplied style that way, so two plugins can ship a style called the same thing without
+clashing.
 
 You select the style once and it stays selected. The boundary itself stays off until you
-arm a session with `/decision-layer`.
+arm a session with `/decision-layer`. If you skip this step the plugin says so at the start
+of every session — without the style, arming writes its flag and nothing else happens, which
+is the one failure that leaves no trace.
 
 Requires **`bash`** and **Python 3** on `PATH` (`python3`, `python` or `py`). macOS and
 Linux have both; on Windows, Git Bash provides `bash`. Without `bash` the hook never runs,
@@ -86,7 +95,9 @@ Two pieces, and both are needed:
    is written conditionally — it applies only to a turn carrying a `DECISION-LAYER:ARMED`
    marker.
 2. **A hook** that decides, per turn, whether to send that marker. Armed state is one file per
-   session under your Claude config directory, so a new session always starts off.
+   session under your Claude config directory, so a new session always starts off. The same
+   hook checks at the start of each session that the style is selected at all, and says so
+   on screen when it is not.
 
 Why not just an output style? Because a style has no session scope: switch it on and it stays
 on until something switches it off, and one forgotten evening later it is quietly still there.
@@ -95,7 +106,8 @@ every armed turn, instead of a few dozen for the marker.
 
 ## Editing the rules
 
-The rules are in `output-styles/decision-layer.md`. The armed marker text is in
+The rules are in `output-styles/decision-layer.md` — the file name, not the style name;
+the style is named by the `name:` field in its frontmatter. The armed marker text is in
 `skills/decision-layer/SKILL.md`, between the `INJECT` markers — the hook reads it fresh on
 every prompt, so an edit takes effect on the next one, with no restart.
 

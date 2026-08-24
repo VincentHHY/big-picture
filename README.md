@@ -181,11 +181,17 @@ know it was on.
 ```
 /plugin marketplace add VincentHHY/big-picture
 /plugin install decision-layer@big-picture
-/output-style decision-layer
 ```
+
+Then pick the style once: `/config` → **Output style** → **`decision-layer:Plain`**. On a
+machine where that screen does not offer it, put `"outputStyle": "decision-layer:Plain"` in
+`~/.claude/settings.json` instead and restart.
 
 Turn it on for a session with `/decision-layer`, off again with `/decision-layer off`.
 It is **off by default in every new session**, so it never follows you into tomorrow.
+
+Forget the style step and the plugin tells you at the start of each session. Without it
+selected there is nothing to arm, and that is the one failure you could not otherwise see.
 
 Needs `bash` and Python 3 on your `PATH`. macOS and Linux have both already; on Windows,
 Git Bash provides `bash`.

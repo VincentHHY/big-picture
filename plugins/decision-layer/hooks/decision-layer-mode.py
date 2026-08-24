@@ -6,8 +6,13 @@ conditionally: it applies only to a turn carrying the marker. All this hook does
 per turn, whether to send that marker. That is why the injected text is a few dozen tokens
 rather than the whole rulebook.
 
-Two hook events, because Claude Code splits them:
+Three hook events, because Claude Code splits them:
 
+  SessionStart         fires once when a session opens. Used only to check that the output
+                       style this plugin ships was actually selected. If it was not, the
+                       whole plugin is inert - arming writes its flag, the marker goes out,
+                       and nothing happens, because the rules live in the style. That failure
+                       is invisible, so say so on screen rather than let it pass.
   UserPromptExpansion  fires for a TYPED slash command and carries command_name and
                        command_args. "/decision-layer" arms the session, "/decision-layer
                        off" disarms it. Deterministic - no model involvement.
@@ -73,12 +78,19 @@ def plugin_root():
 
 CLAUDE_DIR = config_dir()
 STATE_DIR = CLAUDE_DIR / "state"
-SKILL_PATH = plugin_root() / "skills" / SKILL_NAME / "SKILL.md"
+PLUGIN_DIR = plugin_root()
+SKILL_PATH = PLUGIN_DIR / "skills" / SKILL_NAME / "SKILL.md"
+STYLE_DIR = PLUGIN_DIR / "output-styles"
+MANIFEST_PATH = PLUGIN_DIR / ".claude-plugin" / "plugin.json"
 LOG_PATH = STATE_DIR / (SKILL_NAME + "-mode.log")
 
 # Session ids are uuids. Validate before using one in a path.
 SESSION_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 INJECT_RE = re.compile(r"<!--\s*INJECT:BEGIN\s*-->(.*?)<!--\s*INJECT:END\s*-->", re.S)
+
+# Run only against a frontmatter block, never a whole file: "name:" appears in ordinary prose
+# too, and the first match anywhere would quietly win.
+FRONTMATTER_NAME_RE = re.compile(r"^name:\s*(\S.*?)\s*$", re.M)
 
 # Matched against the FIRST WORD of the argument, exactly. A prefix match would read
 # "/decision-layer now" as "no" and silently switch the boundary off, which is the worst
@@ -157,6 +169,96 @@ def emit(text, event="UserPromptSubmit"):
     }))
 
 
+def warn_user(text):
+    """A line shown to the user in the terminal, not to the model.
+
+    emit() talks to the model; this one talks to the person. Both print JSON on stdout, so
+    only ever call one of them per run.
+    """
+    print(json.dumps({"systemMessage": text}))
+
+
+def plugin_name():
+    """The name Claude Code registers this plugin under."""
+    try:
+        name = json.loads(MANIFEST_PATH.read_text(encoding="utf-8")).get("name")
+        if name:
+            return str(name)
+    except Exception:
+        pass
+    return PLUGIN_DIR.name
+
+
+def frontmatter_name(path):
+    """The name: field of a markdown file's frontmatter, or its filename if it has none."""
+    text = Path(path).read_text(encoding="utf-8")
+    if text.startswith("---"):
+        match = FRONTMATTER_NAME_RE.search(text.split("---")[1])
+        if match:
+            return match.group(1)
+    return Path(path).stem
+
+
+def style_name():
+    """The style's full name, spelled the way the picker spells it.
+
+    A style shipped inside a plugin is registered as "<plugin>:<style>", never as the bare
+    name in its frontmatter. Derive both halves rather than hard-coding the result: a copy
+    of a name in a second place is exactly what goes stale without anyone noticing.
+    """
+    for path in sorted(glob.glob(str(STYLE_DIR / "*.md"))):
+        return plugin_name() + ":" + frontmatter_name(path)
+    return ""
+
+
+def selected_styles():
+    """Every output style named by a settings file that could apply here.
+
+    Claude Code merges several settings files and the precedence is its business, not ours.
+    Collecting them all and treating any match as good keeps this from crying wolf at
+    someone who selected the style in a place we did not think to look.
+    """
+    here = Path(os.getcwd())
+    paths = [
+        CLAUDE_DIR / "settings.json",
+        here / ".claude" / "settings.json",
+        here / ".claude" / "settings.local.json",
+    ]
+    found = []
+    for path in paths:
+        try:
+            value = json.loads(path.read_text(encoding="utf-8")).get("outputStyle")
+        except Exception:
+            continue
+        if value:
+            found.append(str(value))
+    return found
+
+
+def check_style_selected():
+    """Say so when the plugin is installed but its output style was never picked.
+
+    This is the plugin's quietest way to fail. The rules live in the style, so without it
+    selected everything else still works and produces nothing: the command is accepted, the
+    flag file is written, the marker goes out, and the reply comes back in ordinary prose
+    with no footer and no error. Nothing on screen separates that from the boundary simply
+    having little to say, so the user has no way to tell.
+    """
+    ours = style_name()
+    if not ours:
+        return
+    chosen = selected_styles()
+    if ours in chosen:
+        return
+    if chosen:
+        warn_user("decision-layer is installed, but your output style is \"" + chosen[0]
+                  + "\", so the boundary will never appear. Pick \"" + ours
+                  + "\" in /config -> Output style.")
+    else:
+        warn_user("decision-layer is installed, but no output style is selected, so arming "
+                  "it does nothing. Pick \"" + ours + "\" in /config -> Output style.")
+
+
 def is_our_command(command_name):
     """Match the skill whether or not the host namespaced the command.
 
@@ -213,6 +315,12 @@ def run_cli(argument):
 
 def run_hook():
     payload = json.loads(sys.stdin.read())
+
+    # Needs no session id, so it runs before that check rather than after it.
+    if payload.get("hook_event_name") == "SessionStart":
+        check_style_selected()
+        return
+
     session_id = str(payload.get("session_id") or "")
     if not SESSION_RE.match(session_id):
         return
