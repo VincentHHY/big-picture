@@ -21,33 +21,49 @@ follow you into tomorrow.
 
 ## Install
 
+Three steps, about a minute.
+
+**1 — Install the plugin.** In Claude Code:
+
 ```
 /plugin marketplace add VincentHHY/big-picture
 /plugin install decision-layer@big-picture
 ```
 
-Then select the output style once, in `/config` → **Output style** → **`decision-layer:Plain`**.
+**2 — Select the output style, once.** `/config` → **Output style** → **`decision-layer:Plain`**.
 
-On a machine where that screen does not offer the option, put it in `~/.claude/settings.json`
-by hand and restart:
+**3 — Turn it on whenever you want it.**
 
-```json
-"outputStyle": "decision-layer:Plain"
+```
+/decision-layer
 ```
 
-The name carries the plugin in front of it because Claude Code registers every
-plugin-supplied style that way, so two plugins can ship a style called the same thing without
-clashing.
+The style stays selected from then on. The boundary does not: it starts off in every new
+session, and step 3 is how you bring it back.
 
-You select the style once and it stays selected. The boundary itself stays off until you
-arm a session with `/decision-layer`. If you skip this step the plugin says so at the start
-of every session — without the style, arming writes its flag and nothing else happens, which
-is the one failure that leaves no trace.
+### If it is not working
 
-Requires **`bash`** and **Python 3** on `PATH` (`python3`, `python` or `py`). macOS and
-Linux have both; on Windows, Git Bash provides `bash`, and the launcher steps over the
-Microsoft Store's `python3` and `python` placeholders to reach a real one. Without either
-the hook never runs, so the boundary simply never turns on — no error, and no footer.
+- **Replies have no `▪ decision-layer` footer.** Step 2 was skipped, or did not take.
+  Without the style there is nothing for the arming to switch on — the command is accepted,
+  the flag is written, and the reply comes back in ordinary prose with no error and no
+  footer. That is the one failure that leaves no trace, so the plugin says so at the start
+  of every session rather than let it pass.
+- **`decision-layer:Plain` is not offered in `/config`.** Put it into
+  `~/.claude/settings.json` by hand and restart:
+
+  ```json
+  "outputStyle": "decision-layer:Plain"
+  ```
+
+- **Nothing happens at all.** The plugin needs **`bash`** and **Python 3** on `PATH`
+  (`python3`, `python` or `py`). macOS and Linux have both; on Windows, Git Bash provides
+  `bash`, and the launcher steps over the Microsoft Store's `python3` and `python`
+  placeholders to reach a real one. Without either, the hook never runs, so the boundary
+  simply never turns on — no error, and no footer.
+
+The style's name carries the plugin in front of it because Claude Code registers every
+plugin-supplied style that way, so two plugins can ship a style called the same thing
+without clashing.
 
 ## Use
 
