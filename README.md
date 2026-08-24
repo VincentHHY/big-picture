@@ -178,25 +178,38 @@ know it was on.
 
 ## Install
 
+Three steps, about a minute.
+
+**1 — Install the plugin.** In Claude Code:
+
 ```
 /plugin marketplace add VincentHHY/big-picture
 /plugin install decision-layer@big-picture
 ```
 
-Then pick the style once: `/config` → **Output style** → **`decision-layer:Plain`**. On a
-machine where that screen does not offer it, put `"outputStyle": "decision-layer:Plain"` in
-`~/.claude/settings.json` instead and restart.
+**2 — Select the output style, once.** `/config` → **Output style** → **`decision-layer:Plain`**.
 
-Turn it on for a session with `/decision-layer`, off again with `/decision-layer off`.
-It is **off by default in every new session**, so it never follows you into tomorrow.
-The `/` menu shows the command doubled, as `decision-layer:decision-layer` — that is just
-Claude Code filing the skill under the plugin name. The short form works; type that.
+**3 — Turn it on whenever you want it.**
 
-Forget the style step and the plugin tells you at the start of each session. Without it
-selected there is nothing to arm, and that is the one failure you could not otherwise see.
+```
+/decision-layer
+```
 
-Needs `bash` and Python 3 on your `PATH`. macOS and Linux have both already; on Windows,
-Git Bash provides `bash`.
+That is the whole thing. `/decision-layer off` turns it off again, and **every new session
+starts off**, so it never follows you into tomorrow.
+
+### If it is not working
+
+- **Replies have no `▪ decision-layer` footer.** Step 2 was skipped, or did not take. The
+  plugin says so at the start of every session when the style is not selected — without it
+  there is nothing to arm, and that is the one failure that otherwise leaves no trace.
+- **`decision-layer:Plain` is not offered in `/config`.** Put `"outputStyle":
+  "decision-layer:Plain"` into `~/.claude/settings.json` by hand, and restart.
+- **The command menu shows the name twice**, as `decision-layer:decision-layer`. That is
+  Claude Code filing a skill under the name of the plugin that ships it. The short
+  `/decision-layer` works; type that.
+- **Nothing happens at all.** The plugin needs `bash` and Python 3 on your `PATH`. macOS and
+  Linux have both already; on Windows, Git Bash provides `bash`.
 
 Full documentation, including the escape hatches and how the pieces fit together:
 **[plugins/decision-layer](plugins/decision-layer)**.
