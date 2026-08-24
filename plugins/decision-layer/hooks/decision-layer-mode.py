@@ -332,11 +332,15 @@ def select_style_globally():
 def setup_report(ok, replaced, reason):
     """What to tell the person after a setup run.
 
-    Reassurance is the trap here. Selecting a style is a one-line edit that switches nothing
-    on, but a message that keeps insisting it is harmless reads as though it were not: the
-    more lines spent saying nothing has changed, the more the reader looks for what did. So
-    the report leads with nothing being switched on, keeps the edit itself to a clause, and
-    stops. The instruction against reassuring is not a style note - it is the fix.
+    Two traps, pulling opposite ways. Pile on reassurance and a one-line edit reads as though
+    it were dangerous - the more lines spent saying nothing changed, the harder the reader
+    looks for what did. But lead with what did NOT happen and it reads as a failure report:
+    "nothing is switched on" is the first thing someone sees after running a command they
+    chose, and it lands as "it did not work".
+
+    So: confirm it worked, then say it stays off until asked - forward-looking, the next step
+    rather than a disclaimer - and stop. The instructions about ordering and reassurance are
+    not style notes; they are the fix.
 
     The one fact that earns a sentence of its own is what the write took over from, if it
     took over anything, because that is the only part the person cannot see for themselves.
@@ -348,15 +352,18 @@ def setup_report(ok, replaced, reason):
                 + USER_SETTINGS_LABEL + " themselves. Do not edit the file for them.")
     lines = [
         "The decision-layer setup succeeded. Tell the user, in at most two short sentences, "
-        "and in this order: nothing is switched on; decision-layer is ready in every project "
-        "(saved in " + USER_SETTINGS_LABEL + "); and they run /" + SKILL_NAME + " in a new "
-        "session when they want it, for that session only.",
+        "and in this order: setup is done and decision-layer is ready in every project; it "
+        "stays off until they ask for it, so they run /" + SKILL_NAME + " in a new session to "
+        "switch it on for that session.",
     ]
     if replaced and replaced != ours:
         lines.append("Add one more sentence, no longer: it took over from \"" + replaced
                      + "\", and setting \"outputStyle\": \"" + replaced + "\" in "
                      + USER_SETTINGS_LABEL + " puts it back.")
-    lines.append("Say it as routine. Do not explain what an output style is, do not list "
+    lines.append("Open by confirming it worked. A message that opens with what did NOT happen "
+                 "reads as a failure report however it ends, and this one follows a command "
+                 "the user chose to run.")
+    lines.append("Then say it as routine. Do not explain what an output style is, do not list "
                  "what is unaffected, and do not reassure them - this is a small thing, and "
                  "dwelling on it is what makes it read as a large one.")
     lines.append("Do not arm the boundary and do not write the decision-layer footer: the "

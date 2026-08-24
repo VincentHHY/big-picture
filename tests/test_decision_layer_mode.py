@@ -529,13 +529,20 @@ def test_setup_does_not_arm_the_session(hook, monkeypatch, capsys):
     assert not (hook.STATE_DIR / ("decision-layer-" + SESSION)).exists()
 
 
-def test_setup_report_leads_with_nothing_being_switched_on(hook, monkeypatch, capsys):
-    """A reader who thinks their sessions just changed goes looking for what changed. Saying
-    up front that nothing is on is what stops that, and it has to come before the edit."""
+def test_setup_report_confirms_it_worked_before_anything_else(hook, monkeypatch, capsys):
+    """This opened with "nothing is switched on" once, and a tester read it as a failed
+    install. After a command someone chose to run, the first words have to say it worked. The
+    off state belongs second, as the next step rather than a disclaimer."""
     report = emitted_text_for_setup(hook, monkeypatch, capsys)
-    assert "nothing is switched on" in report
-    assert report.index("nothing is switched on") < report.index("saved in"), (
-        "the edit is named before the state, which is the emphasis that reads as a warning")
+    assert "setup is done" in report
+    assert "stays off until they ask" in report
+    assert report.index("setup is done") < report.index("stays off"), (
+        "the report puts what did not happen before what did, which reads as a failure")
+
+
+def test_setup_report_warns_against_opening_with_a_negation(hook, monkeypatch, capsys):
+    """The reason travels with the rule, so the opener cannot quietly drift back."""
+    assert "did not happen" in emitted_text_for_setup(hook, monkeypatch, capsys)
 
 
 def test_setup_report_tells_the_model_not_to_reassure(hook, monkeypatch, capsys):
