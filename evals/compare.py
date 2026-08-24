@@ -56,7 +56,12 @@ def comparator_brief():
 
 
 def ask(prompt):
-    env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+    # CLAUDE_EFFORT carries the calling session's reasoning effort. Inheriting it
+    # would tie the measurement to whatever the operator happened to have set, so
+    # two people running this suite would get different numbers from the same code.
+    # Drop it, and every run measures the shipped defaults.
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("CLAUDECODE", "CLAUDE_EFFORT")}
     env["PYTHONIOENCODING"] = "utf-8"
     completed = subprocess.run(
         ["claude", "-p", "--no-session-persistence", "--output-format", "json",
