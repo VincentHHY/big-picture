@@ -339,8 +339,13 @@ def setup_report(ok, replaced, reason):
     chose, and it lands as "it did not work".
 
     So: confirm it worked, then say it stays off until asked - forward-looking, the next step
-    rather than a disclaimer - and stop. The instructions about ordering and reassurance are
-    not style notes; they are the fix.
+    rather than a disclaimer. The instructions about ordering and reassurance are not style
+    notes; they are the fix.
+
+    The last sentence earns its place by saving a confusing minute. Someone told to run the
+    arming command will try it where they are standing, and the style is not loaded in the
+    session that selected it, so it accepts the command and does nothing. Saying which session
+    to use is not enough; the reason has to come with it.
 
     The one fact that earns a sentence of its own is what the write took over from, if it
     took over anything, because that is the only part the person cannot see for themselves.
@@ -351,10 +356,11 @@ def setup_report(ok, replaced, reason):
                 "and tell them they can add \"outputStyle\": \"" + ours + "\" to "
                 + USER_SETTINGS_LABEL + " themselves. Do not edit the file for them.")
     lines = [
-        "The decision-layer setup succeeded. Tell the user, in at most two short sentences, "
+        "The decision-layer setup succeeded. Tell the user, in at most three short sentences, "
         "and in this order: setup is done and decision-layer is ready in every project; it "
-        "stays off until they ask for it, so they run /" + SKILL_NAME + " in a new session to "
-        "switch it on for that session.",
+        "stays off until they ask for it; and this session cannot switch it on, because "
+        "Claude Code loads the output style when a session opens - so they start a new "
+        "session or run /clear, and run /" + SKILL_NAME + " there.",
     ]
     if replaced and replaced != ours:
         lines.append("Add one more sentence, no longer: it took over from \"" + replaced

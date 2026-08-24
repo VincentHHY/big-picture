@@ -551,10 +551,19 @@ def test_setup_report_tells_the_model_not_to_reassure(hook, monkeypatch, capsys)
     assert "do not reassure" in emitted_text_for_setup(hook, monkeypatch, capsys)
 
 
-def test_setup_report_asks_for_at_most_two_sentences(hook, monkeypatch, capsys):
+def test_setup_report_caps_its_own_length(hook, monkeypatch, capsys):
     """Length is the other half of the tone. Left uncapped the model explains what an output
     style is, and the explanation is what makes a one-line edit sound big."""
-    assert "two short sentences" in emitted_text_for_setup(hook, monkeypatch, capsys)
+    assert "three short sentences" in emitted_text_for_setup(hook, monkeypatch, capsys)
+
+
+def test_setup_report_says_this_session_cannot_switch_it_on(hook, monkeypatch, capsys):
+    """Told only to use a new session, people try the arming command where they are standing.
+    It is accepted and does nothing, because the style is not loaded here - the single most
+    likely way a working install still looks broken."""
+    report = emitted_text_for_setup(hook, monkeypatch, capsys)
+    assert "this session cannot switch it on" in report
+    assert "/clear" in report
 
 
 def test_setup_refuses_to_overwrite_a_settings_file_it_cannot_parse(hook, monkeypatch, capsys):
