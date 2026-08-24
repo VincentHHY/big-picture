@@ -572,7 +572,9 @@ def test_the_warning_offers_the_setup_command(hook, monkeypatch, capsys, tmp_pat
     one-step fix belongs."""
     monkeypatch.chdir(tmp_path)
     feed(hook, monkeypatch, start())
-    assert "setup" in system_message(capsys)
+    shown = system_message(capsys)
+    assert shown is not None, "the hook said nothing at all"
+    assert "setup" in shown
 
 
 # --------------------------------------------------------------------------
@@ -634,13 +636,18 @@ def test_pasting_our_own_documentation_leaves_the_session_armed(hook, monkeypatc
 INSTALL_DOCS = [PLUGIN_DIR.parent.parent / "README.md", PLUGIN_DIR / "README.md"]
 
 
-def test_both_install_guides_warn_that_this_session_cannot_see_the_style():
+def test_both_guides_warn_that_the_current_session_cannot_see_the_style():
     """Selecting the style and then arming in the same session looks like a working install
-    and does nothing at all. A guide that does not send the reader to a new session or /clear
-    hands them that failure on their first try."""
+    and does nothing whatever. Both pages have to send the reader to a fresh session.
+
+    This pins the fact, not the sentence. Nobody reads the two pages together, and each says
+    it in its own shape: the landing page warns while you are installing, the plugin page
+    carries it as the first thing to check when nothing happens. Forcing them to match would
+    cost whichever page had to give up its own wording.
+    """
     for path in INSTALL_DOCS:
         text = path.read_text(encoding="utf-8")
-        assert "/clear" in text, path.name + " never tells the reader to start a fresh session"
+        assert "/clear" in text, path.name + " never sends the reader to a fresh session"
 
 
 def test_every_document_names_the_setup_command():
@@ -651,11 +658,15 @@ def test_every_document_names_the_setup_command():
         assert "decision-layer setup" in text, path.name + " never names the setup command"
 
 
-def test_every_document_offers_a_route_without_the_picker():
+def test_the_hand_edit_route_survives_where_it_is_described():
     """Only the terminal has an Output style picker. The VS Code extension lists the entry but
     sends you to a terminal, and the desktop app's /config opens its own settings screen, so a
-    document that names only the picker strands both of them."""
-    for path in DOCS:
+    document that names only the picker strands both of them.
+
+    The plugin page is exempt: it names the setup command and links out for everything else,
+    so it never sends anyone to edit the file by hand.
+    """
+    for path in [DOCS[0], DOCS[2]]:
         text = path.read_text(encoding="utf-8")
         assert "~/.claude/settings.json" in text, (
             path.name + " names no route for surfaces without the /config picker")

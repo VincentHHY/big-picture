@@ -1,112 +1,15 @@
 # decision-layer
 
-Get answers you can judge and decide on without reading any code.
+Answers you can judge and decide on without reading code. The prose carries no code, paths or
+line numbers; anything you would need a pointer for waits under a `--- where ---` line at the
+bottom; and every reply written under the boundary ends with `▪ decision-layer`.
 
-Claude normally answers a design question by mixing the decision and the evidence together:
-the recommendation, then the file it lives in, then the three lines that prove it. That is
-right when you are in the code. It is noise when you are deciding whether to do the thing at
-all.
+It starts **off in every new session**. You arm it when you want it, and it does not follow
+you into tomorrow.
 
-`decision-layer` draws a line. While it is on:
-
-- The prose carries **no** file paths, symbol names, quoted lines or command output.
-- Any pointers you need go under a `--- where ---` line at the very bottom, numbered to match.
-- A choice that cannot be stated without implementation detail is first **recast** — stated by
-  what you would actually feel: speed, risk, what breaks, what gets harder later. Only a choice
-  with no consequence you could feel is decided for you, silently.
-- Every reply ends with `▪ decision-layer`, so you always know it was on.
-
-It is **off by default in every new session**. You turn it on when you want it, and it does not
-follow you into tomorrow.
-
-## Install
-
-Three steps, about a minute.
-
-**1 — Install the plugin.** In Claude Code:
-
-```
-/plugin marketplace add VincentHHY/big-picture
-/plugin install decision-layer@big-picture
-```
-
-**2 — Select the output style, once.**
-
-```
-/decision-layer setup
-```
-
-That one command makes the boundary available in every project — in the terminal, the VS Code
-extension and the desktop app alike — and step 3 is how you actually use it.
-
-> [!IMPORTANT]
-> **Not in the session you are in now.** Claude Code reads the output style once, when a
-> session opens, so this one cannot see it. Start a new session, or run `/clear`. Until you
-> do, step 3 accepts the command and changes nothing.
-
-Under the hood it is a single line, `"outputStyle": "decision-layer:Plain"`, written into your
-own `~/.claude/settings.json`.
-
-**Selecting it changes nothing by itself.** An output style normally rewrites every reply,
-but this one is written to apply only to a turn the hook has marked. So a session you have
-not armed reads exactly as it would with no output style selected at all, and arming never
-carries past the session you did it in.
-
-<details>
-<summary>&nbsp;&nbsp;rather set it yourself?</summary>
-
-Add the `outputStyle` line to `~/.claude/settings.json`, or create that file with just this
-in it:
-
-```json
-{
-  "outputStyle": "decision-layer:Plain"
-}
-```
-
-A terminal also has a picker — `/config` → **Output style** — but it saves your choice into
-`.claude/settings.local.json` inside the project you are standing in, so it covers that one
-project. The VS Code extension and the desktop app have no picker at all: the extension lists
-**Output styles** in its `/` menu and then points you back to a terminal, and the desktop
-app's `/config` opens Settings → Claude Code instead.
-
-</details>
-
-**3 — Turn it on whenever you want it.**
-
-```
-/decision-layer
-```
-
-The style stays selected from then on. The boundary does not: it starts off in every new
-session, and step 3 is how you bring it back.
-
-### If it is not working
-
-- **Replies have no `▪ decision-layer` footer.** Step 2 was skipped, or did not take.
-  Without the style there is nothing for the arming to switch on — the command is accepted,
-  the flag is written, and the reply comes back in ordinary prose with no error and no
-  footer. That is the one failure that leaves no trace, so the plugin says so at the start
-  of every session rather than let it pass.
-- **The terminal picker only took effect in one project.** That is where it saves: into
-  `.claude/settings.local.json`, inside the project you were in, and it has no global option.
-  Run `/decision-layer setup` instead, or move the `outputStyle` line into
-  `~/.claude/settings.json` yourself.
-- **An output style you were already using stopped applying.** Claude Code holds one output
-  style at a time, so selecting this one takes the slot. Put the old name back into
-  `~/.claude/settings.json` to return to it — `/decision-layer setup` tells you which name it
-  took over from.
-- **The VS Code extension still shows the old style.** It reads the setting when the
-  extension starts. Reload the window after editing the file.
-- **Nothing happens at all.** The plugin needs **`bash`** and **Python 3** on `PATH`
-  (`python3`, `python` or `py`). macOS and Linux have both; on Windows, Git Bash provides
-  `bash`, and the launcher steps over the Microsoft Store's `python3` and `python`
-  placeholders to reach a real one. Without either, the hook never runs, so the boundary
-  simply never turns on — no error, and no footer.
-
-The style's name carries the plugin in front of it because Claude Code registers every
-plugin-supplied style that way, so two plugins can ship a style called the same thing
-without clashing.
+**This page is the reference** — how to drive it, what to do when it misbehaves, and how it is
+built. Installing it, what it is for, a real before-and-after, and the measured results are
+all on the **[landing page](../../README.md)**.
 
 ## Use
 
@@ -132,23 +35,23 @@ own at the top or the bottom of a message, which is where you would reach for on
 a switch anywhere else does nothing, so pasting a transcript — or this page, which names
 both of them — leaves the boundary exactly as it was.
 
-## Does it actually work?
+## If it is not working
 
-It has been measured, not just written. Every case runs as a real armed session driven by the
-live hook and the live output style, and the headline judge is a grader that sees only the
-prose — never the code, the fixture or the original question. That is the reader's real
-situation.
+- **You ran `/decision-layer setup`, armed, and nothing happened.** Claude Code reads the
+  output style once, when a session opens, so the session you ran setup in cannot see it.
+  Start a new session, or run `/clear`. Until then arming accepts the command and changes
+  nothing — no error, and no footer.
+- **The VS Code extension still shows the old style.** It reads the setting when the
+  extension starts, so reload the window after changing it.
+- **Nothing happens at all, on any surface.** The plugin needs **`bash`** and **Python 3** on
+  `PATH` (`python3`, `python` or `py`). macOS and Linux have both; on Windows, Git Bash
+  provides `bash`, and the launcher steps over the Microsoft Store's `python3` and `python`
+  placeholders to reach a real one. Without either the hook never runs, so the boundary never
+  turns on.
 
-Across 55 armed replies where the boundary was meant to apply, the reader was blocked
-**once**. The same cases run unarmed, as a control:
-
-| | armed | unarmed |
-|---|---|---|
-| reader could follow it | 100% | 20–40% |
-| mechanical checks passed | 91–100% | 18–40% |
-
-The suite lives in `evals/` at the root of this repository. It is not shipped inside the
-plugin, and running it costs real money, because it drives live Claude sessions.
+The [landing page](../../README.md#if-it-is-not-working) covers the rest: replies with no
+footer at all, a selection that reached only one project, and an output style of your own that
+stopped applying.
 
 ## What it does not touch
 
@@ -176,10 +79,19 @@ every armed turn, instead of a few dozen for the marker.
 
 ## Editing the rules
 
-The rules are in `output-styles/decision-layer.md` — the file name, not the style name;
-the style is named by the `name:` field in its frontmatter. The armed marker text is in
-`skills/decision-layer/SKILL.md`, between the `INJECT` markers — the hook reads it fresh on
-every prompt, so an edit takes effect on the next one, with no restart.
+The rules are in `output-styles/decision-layer.md` — the file name, not the style name. The
+style is named by the `name:` field in its frontmatter, and Claude Code registers it with the
+plugin's name in front, as `decision-layer:Plain`, so two plugins can ship a style called the
+same thing without clashing.
+
+The armed marker text is in `skills/decision-layer/SKILL.md`, between the `INJECT` markers —
+the hook reads it fresh on every prompt, so an edit takes effect on the next one, with no
+restart.
+
+Measure before you change either. The suite in `evals/` at the root of this repository drives
+real armed sessions and grades the prose blind, so it answers whether an edit helped rather
+than whether it reads well. It is not shipped inside the plugin, and it costs real money to
+run.
 
 ## Licence
 

@@ -197,17 +197,25 @@ That one command makes the boundary available in every project — in the termin
 extension and the desktop app alike — and step 3 is how you actually use it.
 
 > [!IMPORTANT]
-> **Not in the session you are in now.** Claude Code reads the output style once, when a
-> session opens, so this one cannot see it. Start a new session, or run `/clear`. Until you
-> do, step 3 accepts the command and changes nothing.
+> **Step 3 will not work in this session.** Claude Code reads the output style once, when a
+> session opens, so the session you ran step 2 in cannot see it. Until you start a new
+> session or run `/clear`, step 3 accepts the command and changes nothing.
+
+**3 — Turn it on whenever you want it.**
+
+```
+/decision-layer
+```
+
+That is the whole thing. `/decision-layer off` turns it off again, and **every new session
+starts off**, so it never follows you into tomorrow.
 
 Under the hood it is a single line, `"outputStyle": "decision-layer:Plain"`, written into your
 own `~/.claude/settings.json`.
 
 **Selecting it changes nothing by itself.** An output style normally rewrites every reply,
 but this one is written to apply only to a turn the hook has marked. So a session you have
-not armed reads exactly as it would with no output style selected at all, and arming never
-carries past the session you did it in.
+not armed reads exactly as it would with no output style selected at all.
 
 <details>
 <summary>&nbsp;&nbsp;rather set it yourself?</summary>
@@ -228,15 +236,6 @@ project. The VS Code extension and the desktop app have no picker at all: the ex
 app's `/config` opens Settings → Claude Code instead.
 
 </details>
-
-**3 — Turn it on whenever you want it.**
-
-```
-/decision-layer
-```
-
-That is the whole thing. `/decision-layer off` turns it off again, and **every new session
-starts off**, so it never follows you into tomorrow.
 
 ### If it is not working
 
