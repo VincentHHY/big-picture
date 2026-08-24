@@ -30,7 +30,47 @@ Three steps, about a minute.
 /plugin install decision-layer@big-picture
 ```
 
-**2 — Select the output style, once.** `/config` → **Output style** → **`decision-layer:Plain`**.
+**2 — Select the output style, once.**
+
+```
+/decision-layer setup
+```
+
+That one command makes the boundary available in every project — in the terminal, the VS Code
+extension and the desktop app alike — and step 3 is how you actually use it.
+
+> [!IMPORTANT]
+> **Not in the session you are in now.** Claude Code reads the output style once, when a
+> session opens, so this one cannot see it. Start a new session, or run `/clear`. Until you
+> do, step 3 accepts the command and changes nothing.
+
+Under the hood it is a single line, `"outputStyle": "decision-layer:Plain"`, written into your
+own `~/.claude/settings.json`.
+
+**Selecting it changes nothing by itself.** An output style normally rewrites every reply,
+but this one is written to apply only to a turn the hook has marked. So a session you have
+not armed reads exactly as it would with no output style selected at all, and arming never
+carries past the session you did it in.
+
+<details>
+<summary>&nbsp;&nbsp;rather set it yourself?</summary>
+
+Add the `outputStyle` line to `~/.claude/settings.json`, or create that file with just this
+in it:
+
+```json
+{
+  "outputStyle": "decision-layer:Plain"
+}
+```
+
+A terminal also has a picker — `/config` → **Output style** — but it saves your choice into
+`.claude/settings.local.json` inside the project you are standing in, so it covers that one
+project. The VS Code extension and the desktop app have no picker at all: the extension lists
+**Output styles** in its `/` menu and then points you back to a terminal, and the desktop
+app's `/config` opens Settings → Claude Code instead.
+
+</details>
 
 **3 — Turn it on whenever you want it.**
 
@@ -48,13 +88,16 @@ session, and step 3 is how you bring it back.
   the flag is written, and the reply comes back in ordinary prose with no error and no
   footer. That is the one failure that leaves no trace, so the plugin says so at the start
   of every session rather than let it pass.
-- **`decision-layer:Plain` is not offered in `/config`.** Put it into
-  `~/.claude/settings.json` by hand and restart:
-
-  ```json
-  "outputStyle": "decision-layer:Plain"
-  ```
-
+- **The terminal picker only took effect in one project.** That is where it saves: into
+  `.claude/settings.local.json`, inside the project you were in, and it has no global option.
+  Run `/decision-layer setup` instead, or move the `outputStyle` line into
+  `~/.claude/settings.json` yourself.
+- **An output style you were already using stopped applying.** Claude Code holds one output
+  style at a time, so selecting this one takes the slot. Put the old name back into
+  `~/.claude/settings.json` to return to it — `/decision-layer setup` tells you which name it
+  took over from.
+- **The VS Code extension still shows the old style.** It reads the setting when the
+  extension starts. Reload the window after editing the file.
 - **Nothing happens at all.** The plugin needs **`bash`** and **Python 3** on `PATH`
   (`python3`, `python` or `py`). macOS and Linux have both; on Windows, Git Bash provides
   `bash`, and the launcher steps over the Microsoft Store's `python3` and `python`
@@ -69,6 +112,7 @@ without clashing.
 
 | Command | Effect |
 |---|---|
+| `/decision-layer setup` | Selects the output style for every project. Run once, at install |
 | `/decision-layer` | On, for this session |
 | `/decision-layer off` | Off, for this session |
 | `--impl` on a message's first or last line | Off for that **one** reply, then back on |
@@ -122,7 +166,8 @@ Two pieces, and both are needed:
 2. **A hook** that decides, per turn, whether to send that marker. Armed state is one file per
    session under your Claude config directory, so a new session always starts off. The same
    hook checks at the start of each session that the style is selected at all, and says so
-   on screen when it is not.
+   on screen when it is not — and it is what `/decision-layer setup` runs, so selecting the
+   style needs no separate script.
 
 Why not just an output style? Because a style has no session scope: switch it on and it stays
 on until something switches it off, and one forgotten evening later it is quietly still there.

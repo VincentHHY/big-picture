@@ -187,7 +187,47 @@ Three steps, about a minute.
 /plugin install decision-layer@big-picture
 ```
 
-**2 — Select the output style, once.** `/config` → **Output style** → **`decision-layer:Plain`**.
+**2 — Select the output style, once.**
+
+```
+/decision-layer setup
+```
+
+That one command makes the boundary available in every project — in the terminal, the VS Code
+extension and the desktop app alike — and step 3 is how you actually use it.
+
+> [!IMPORTANT]
+> **Not in the session you are in now.** Claude Code reads the output style once, when a
+> session opens, so this one cannot see it. Start a new session, or run `/clear`. Until you
+> do, step 3 accepts the command and changes nothing.
+
+Under the hood it is a single line, `"outputStyle": "decision-layer:Plain"`, written into your
+own `~/.claude/settings.json`.
+
+**Selecting it changes nothing by itself.** An output style normally rewrites every reply,
+but this one is written to apply only to a turn the hook has marked. So a session you have
+not armed reads exactly as it would with no output style selected at all, and arming never
+carries past the session you did it in.
+
+<details>
+<summary>&nbsp;&nbsp;rather set it yourself?</summary>
+
+Add the `outputStyle` line to `~/.claude/settings.json`, or create that file with just this
+in it:
+
+```json
+{
+  "outputStyle": "decision-layer:Plain"
+}
+```
+
+A terminal also has a picker — `/config` → **Output style** — but it saves your choice into
+`.claude/settings.local.json` inside the project you are standing in, so it covers that one
+project. The VS Code extension and the desktop app have no picker at all: the extension lists
+**Output styles** in its `/` menu and then points you back to a terminal, and the desktop
+app's `/config` opens Settings → Claude Code instead.
+
+</details>
 
 **3 — Turn it on whenever you want it.**
 
@@ -203,8 +243,14 @@ starts off**, so it never follows you into tomorrow.
 - **Replies have no `▪ decision-layer` footer.** Step 2 was skipped, or did not take. The
   plugin says so at the start of every session when the style is not selected — without it
   there is nothing to arm, and that is the one failure that otherwise leaves no trace.
-- **`decision-layer:Plain` is not offered in `/config`.** Put `"outputStyle":
-  "decision-layer:Plain"` into `~/.claude/settings.json` by hand, and restart.
+- **The terminal picker only took effect in one project.** That is where it saves: into
+  `.claude/settings.local.json`, inside the project you were in, and it has no global option.
+  Run `/decision-layer setup` instead, or move the `outputStyle` line into
+  `~/.claude/settings.json` yourself.
+- **An output style you were already using stopped applying.** Claude Code holds one output
+  style at a time, so selecting this one takes the slot. Put the old name back into
+  `~/.claude/settings.json` to return to it — `/decision-layer setup` tells you which name it
+  took over from.
 - **The command menu shows the name twice**, as `decision-layer:decision-layer`. That is
   Claude Code filing a skill under the name of the plugin that ships it. The short
   `/decision-layer` works; type that.

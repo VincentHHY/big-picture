@@ -457,6 +457,125 @@ def test_session_start_sends_no_marker(hook, monkeypatch, capsys, tmp_path):
 
 
 # --------------------------------------------------------------------------
+# "/decision-layer setup" - selecting the style for every project
+# --------------------------------------------------------------------------
+
+USER_SETTINGS_LABEL = "~/.claude/settings.json"
+
+
+def user_settings(hook):
+    return hook.CLAUDE_DIR / "settings.json"
+
+
+def emitted_text_for_setup(hook, monkeypatch, capsys):
+    feed(hook, monkeypatch, expand("setup"))
+    return emitted_text(capsys).lower()
+
+
+def test_setup_selects_the_style_in_user_settings(hook, monkeypatch, capsys):
+    """The whole point: the terminal picker writes the project, this writes the user."""
+    feed(hook, monkeypatch, expand("setup"))
+    capsys.readouterr()
+    written = json.loads(user_settings(hook).read_text(encoding="utf-8"))
+    assert written["outputStyle"] == "demo-plugin:Demo"
+
+
+@pytest.mark.parametrize("word", ["setup", "install", "select"])
+def test_every_setup_word_selects_the_style(hook, monkeypatch, capsys, word):
+    feed(hook, monkeypatch, expand(word))
+    capsys.readouterr()
+    assert json.loads(user_settings(hook).read_text(encoding="utf-8"))["outputStyle"]
+
+
+def test_setup_leaves_the_rest_of_the_settings_alone(hook, monkeypatch, capsys):
+    """Someone's whole configuration lives in this file. Touch one key and nothing else."""
+    user_settings(hook).write_text(
+        json.dumps({"model": "opus", "permissions": {"allow": ["Bash(ls)"]}}),
+        encoding="utf-8")
+    feed(hook, monkeypatch, expand("setup"))
+    capsys.readouterr()
+    written = json.loads(user_settings(hook).read_text(encoding="utf-8"))
+    assert written["model"] == "opus"
+    assert written["permissions"] == {"allow": ["Bash(ls)"]}
+    assert written["outputStyle"] == "demo-plugin:Demo"
+
+
+def test_setup_says_what_it_replaced(hook, monkeypatch, capsys):
+    """Replacing a style the person chose is the only part they cannot see for themselves."""
+    select_style(hook, "Concise")
+    feed(hook, monkeypatch, expand("setup"))
+    report = emitted_text(capsys)
+    assert "Concise" in report, "the report never names the style it replaced"
+
+
+def test_setup_stays_quiet_about_a_replacement_when_there_was_none(hook, monkeypatch, capsys):
+    feed(hook, monkeypatch, expand("setup"))
+    assert "took over from" not in emitted_text(capsys)
+
+
+def test_setup_run_twice_reports_no_replacement(hook, monkeypatch, capsys):
+    """Running it again is not a change, so it must not read like one."""
+    feed(hook, monkeypatch, expand("setup"))
+    capsys.readouterr()
+    feed(hook, monkeypatch, expand("setup"))
+    assert "took over from" not in emitted_text(capsys)
+
+
+def test_setup_does_not_arm_the_session(hook, monkeypatch, capsys):
+    """The style is read when a session opens, so it is not loaded in this one. Arming here
+    would switch on nothing and leave the person waiting for a boundary that cannot come."""
+    feed(hook, monkeypatch, expand("setup"))
+    capsys.readouterr()
+    assert not (hook.STATE_DIR / ("decision-layer-" + SESSION)).exists()
+
+
+def test_setup_report_leads_with_nothing_being_switched_on(hook, monkeypatch, capsys):
+    """A reader who thinks their sessions just changed goes looking for what changed. Saying
+    up front that nothing is on is what stops that, and it has to come before the edit."""
+    report = emitted_text_for_setup(hook, monkeypatch, capsys)
+    assert "nothing is switched on" in report
+    assert report.index("nothing is switched on") < report.index("saved in"), (
+        "the edit is named before the state, which is the emphasis that reads as a warning")
+
+
+def test_setup_report_tells_the_model_not_to_reassure(hook, monkeypatch, capsys):
+    """The instruction is the fix, not a style note. A report that piles on reassurance reads
+    as though there were something to be reassured about, which is the failure it prevents."""
+    assert "do not reassure" in emitted_text_for_setup(hook, monkeypatch, capsys)
+
+
+def test_setup_report_asks_for_at_most_two_sentences(hook, monkeypatch, capsys):
+    """Length is the other half of the tone. Left uncapped the model explains what an output
+    style is, and the explanation is what makes a one-line edit sound big."""
+    assert "two short sentences" in emitted_text_for_setup(hook, monkeypatch, capsys)
+
+
+def test_setup_refuses_to_overwrite_a_settings_file_it_cannot_parse(hook, monkeypatch, capsys):
+    """A file we cannot read is someone's whole setup. Report it; never rewrite it."""
+    broken = "{ this is not json"
+    user_settings(hook).write_text(broken, encoding="utf-8")
+    feed(hook, monkeypatch, expand("setup"))
+    report = emitted_text(capsys)
+    assert user_settings(hook).read_text(encoding="utf-8") == broken, "it clobbered the file"
+    assert "could not" in report
+
+
+def test_setup_leaves_no_temporary_file_behind(hook, monkeypatch, capsys):
+    feed(hook, monkeypatch, expand("setup"))
+    capsys.readouterr()
+    leftovers = list(hook.CLAUDE_DIR.glob("*decision-layer-tmp*"))
+    assert leftovers == [], leftovers
+
+
+def test_the_warning_offers_the_setup_command(hook, monkeypatch, capsys, tmp_path):
+    """The session-start warning is where someone meets this problem, so it is where the
+    one-step fix belongs."""
+    monkeypatch.chdir(tmp_path)
+    feed(hook, monkeypatch, start())
+    assert "setup" in system_message(capsys)
+
+
+# --------------------------------------------------------------------------
 # live wiring - these read the REAL files on purpose
 # --------------------------------------------------------------------------
 
@@ -510,3 +629,41 @@ def test_pasting_our_own_documentation_leaves_the_session_armed(hook, monkeypatc
     feed(hook, monkeypatch, submit(path.read_text(encoding="utf-8")))
     assert hook.flag_path(SESSION).exists(), path.name + " disarmed the session"
     assert "DECISION-LAYER:ARMED" in emitted_text(capsys)
+
+
+INSTALL_DOCS = [PLUGIN_DIR.parent.parent / "README.md", PLUGIN_DIR / "README.md"]
+
+
+def test_both_install_guides_warn_that_this_session_cannot_see_the_style():
+    """Selecting the style and then arming in the same session looks like a working install
+    and does nothing at all. A guide that does not send the reader to a new session or /clear
+    hands them that failure on their first try."""
+    for path in INSTALL_DOCS:
+        text = path.read_text(encoding="utf-8")
+        assert "/clear" in text, path.name + " never tells the reader to start a fresh session"
+
+
+def test_every_document_names_the_setup_command():
+    """The one-command install is the whole answer to the picker's project scope. A document
+    that never mentions it sends the reader back to hand-editing JSON."""
+    for path in DOCS:
+        text = path.read_text(encoding="utf-8")
+        assert "decision-layer setup" in text, path.name + " never names the setup command"
+
+
+def test_every_document_offers_a_route_without_the_picker():
+    """Only the terminal has an Output style picker. The VS Code extension lists the entry but
+    sends you to a terminal, and the desktop app's /config opens its own settings screen, so a
+    document that names only the picker strands both of them."""
+    for path in DOCS:
+        text = path.read_text(encoding="utf-8")
+        assert "~/.claude/settings.json" in text, (
+            path.name + " names no route for surfaces without the /config picker")
+
+
+def test_the_warning_offers_a_route_without_the_picker(hook, monkeypatch, capsys, tmp_path):
+    """The session-start warning reaches the surfaces that have no picker too."""
+    monkeypatch.setattr(hook, "CLAUDE_DIR", tmp_path)
+    monkeypatch.chdir(tmp_path)
+    feed(hook, monkeypatch, start())
+    assert "~/.claude/settings.json" in capsys.readouterr().out

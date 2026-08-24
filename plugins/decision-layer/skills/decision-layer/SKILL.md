@@ -16,9 +16,13 @@ bash "${CLAUDE_PLUGIN_ROOT}/hooks/decision-layer-mode.sh" --arm
 ```
 
 If the output style is not selected, arming does nothing. The session-start hook already
-says so on screen when that happens; the fix is to pick `decision-layer:Plain` in `/config`
-under Output style. The selection is remembered, and the boundary still starts off in every
-new session because the hook owns that part.
+says so on screen when that happens. The fix is `/decision-layer setup`: it writes
+`"outputStyle": "decision-layer:Plain"` into `~/.claude/settings.json`, which covers every
+project and every surface. The terminal's `/config` picker covers only the project it was run
+in, and neither the VS Code extension nor the desktop app has a picker at all. The style is
+read at session start either way, so it lands on the next session. The selection is
+remembered, and the boundary still starts off in every new session because the hook owns
+that part.
 
 ## Turning it off
 

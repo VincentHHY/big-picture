@@ -15,7 +15,9 @@ Three hook events, because Claude Code splits them:
                        is invisible, so say so on screen rather than let it pass.
   UserPromptExpansion  fires for a TYPED slash command and carries command_name and
                        command_args. "/decision-layer" arms the session, "/decision-layer
-                       off" disarms it. Deterministic - no model involvement.
+                       off" disarms it, and "/decision-layer setup" selects the output style
+                       in the user's own settings file, which is the one scope that covers
+                       every project. Deterministic - no model involvement.
   UserPromptSubmit     fires for ordinary text. While the session is armed, send the marker
                        so the style engages for that turn. "--impl" suppresses the marker
                        for one turn (the escape hatch); "--impl-off" disarms the session
@@ -97,6 +99,16 @@ FRONTMATTER_NAME_RE = re.compile(r"^name:\s*(\S.*?)\s*$", re.M)
 # "/decision-layer now" as "no" and silently switch the boundary off, which is the worst
 # possible failure: the user sees an ordinary reply and no sign anything was disabled.
 OFF_WORDS = ("off", "stop", "no", "disable")
+
+# "/decision-layer setup" selects the style for every project at once. It exists because the
+# only picker Claude Code offers is the terminal's, and that one saves to the project you
+# happen to be standing in, so a pick made in one repository leaves every other one without
+# the style. The words people reach for vary; accept the obvious ones.
+SETUP_WORDS = ("setup", "install", "select")
+
+# The user's own settings file, named the way the documentation names it. The real path goes
+# through CLAUDE_DIR, but a home-relative spelling is what a person can act on.
+USER_SETTINGS_LABEL = "~/.claude/settings.json"
 
 # Order matters: --impl-off contains --impl, so the session kill-switch has to be tested
 # first or it would only ever read as a one-turn escape.
@@ -265,13 +277,91 @@ def check_style_selected():
     chosen = selected_styles()
     if ours in chosen:
         return
+    # Offer the command rather than the picker. Only the terminal has a picker, and the pick
+    # it saves covers one project; the command works on every surface and every project. Name
+    # the file as well, for anyone who would rather see the edit than run something.
+    fix = ("Run \"/" + SKILL_NAME + " setup\" to select it for every project, or add "
+           "\"outputStyle\": \"" + ours + "\" to " + USER_SETTINGS_LABEL + " by hand.")
     if chosen:
         warn_user("decision-layer is installed, but your output style is \"" + chosen[0]
-                  + "\", so the boundary will never appear. Pick \"" + ours
-                  + "\" in /config -> Output style.")
+                  + "\", so the boundary will never appear. " + fix)
     else:
         warn_user("decision-layer is installed, but no output style is selected, so arming "
-                  "it does nothing. Pick \"" + ours + "\" in /config -> Output style.")
+                  "it does nothing. " + fix)
+
+
+def select_style_globally():
+    """Put this plugin's output style into the user's own settings file.
+
+    This is the same one-line edit a person would otherwise make by hand, and the user file
+    is the only scope that covers every project: the terminal picker writes the project-local
+    file, and neither the VS Code extension nor the desktop app offers a picker at all.
+
+    Never overwrite a settings file we could not parse - a half-understood config is someone's
+    whole setup. Write through a temporary file so a crash mid-write cannot truncate it.
+
+    Returns (ok, replaced, reason). "replaced" is whatever outputStyle was set before, and is
+    empty when there was none.
+    """
+    ours = style_name()
+    if not ours:
+        return False, "", "this plugin ships no output style"
+    path = CLAUDE_DIR / "settings.json"
+    settings = {}
+    if path.exists():
+        try:
+            settings = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as error:
+            return False, "", "could not read " + USER_SETTINGS_LABEL + " as JSON: " + str(error)
+        if not isinstance(settings, dict):
+            return False, "", USER_SETTINGS_LABEL + " does not hold a JSON object"
+    replaced = str(settings.get("outputStyle") or "")
+    if replaced == ours:
+        return True, replaced, ""
+    settings["outputStyle"] = ours
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temp = path.parent / (path.name + ".decision-layer-tmp")
+        temp.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")
+        os.replace(str(temp), str(path))
+    except Exception as error:
+        return False, replaced, "could not write " + USER_SETTINGS_LABEL + ": " + str(error)
+    return True, replaced, ""
+
+
+def setup_report(ok, replaced, reason):
+    """What to tell the person after a setup run.
+
+    Reassurance is the trap here. Selecting a style is a one-line edit that switches nothing
+    on, but a message that keeps insisting it is harmless reads as though it were not: the
+    more lines spent saying nothing has changed, the more the reader looks for what did. So
+    the report leads with nothing being switched on, keeps the edit itself to a clause, and
+    stops. The instruction against reassuring is not a style note - it is the fix.
+
+    The one fact that earns a sentence of its own is what the write took over from, if it
+    took over anything, because that is the only part the person cannot see for themselves.
+    """
+    ours = style_name()
+    if not ok:
+        return ("The decision-layer setup could not finish: " + reason + ". Tell the user, "
+                "and tell them they can add \"outputStyle\": \"" + ours + "\" to "
+                + USER_SETTINGS_LABEL + " themselves. Do not edit the file for them.")
+    lines = [
+        "The decision-layer setup succeeded. Tell the user, in at most two short sentences, "
+        "and in this order: nothing is switched on; decision-layer is ready in every project "
+        "(saved in " + USER_SETTINGS_LABEL + "); and they run /" + SKILL_NAME + " in a new "
+        "session when they want it, for that session only.",
+    ]
+    if replaced and replaced != ours:
+        lines.append("Add one more sentence, no longer: it took over from \"" + replaced
+                     + "\", and setting \"outputStyle\": \"" + replaced + "\" in "
+                     + USER_SETTINGS_LABEL + " puts it back.")
+    lines.append("Say it as routine. Do not explain what an output style is, do not list "
+                 "what is unaffected, and do not reassure them - this is a small thing, and "
+                 "dwelling on it is what makes it read as a large one.")
+    lines.append("Do not arm the boundary and do not write the decision-layer footer: the "
+                 "style is not loaded in this session yet.")
+    return "\n".join(lines)
 
 
 def is_our_command(command_name):
@@ -344,7 +434,12 @@ def run_hook():
         if not is_our_command(payload.get("command_name")):
             return
         words = str(payload.get("command_args") or "").strip().lower().split()
-        if words and words[0] in OFF_WORDS:
+        if words and words[0] in SETUP_WORDS:
+            ok, replaced, reason = select_style_globally()
+            # Deliberately does not arm. The style is read once when a session opens, so it
+            # is not loaded in this one, and arming now would switch on nothing.
+            emit(setup_report(ok, replaced, reason), "UserPromptExpansion")
+        elif words and words[0] in OFF_WORDS:
             disarm(session_id)
             # The skill body still loads and describes the boundary. Say plainly that it no
             # longer applies, so the turn does not act on it.

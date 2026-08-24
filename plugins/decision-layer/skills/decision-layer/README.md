@@ -21,9 +21,14 @@ the model needs. Explanations for the human belong here.
 `▪ decision-layer`.
 
 - **Footer present** - the boundary applied to that reply.
-- **No footer** - it did not. Either the session was never armed, `--impl` suppressed it
-  for that one turn, something disarmed it, or the reply was a plain request for code where
-  the boundary steps aside by design.
+- **No footer** - it did not. Either the output style was never selected, the session was
+  never armed, `--impl` suppressed it for that one turn, something disarmed it, or the reply
+  was a plain request for code where the boundary steps aside by design.
+
+The first of those is the one worth ruling out first, because it looks exactly like the
+others and leaves no trace: with no style selected there are no rules to switch on, so
+arming succeeds and changes nothing. The session-start check says so on screen, and
+`/decision-layer setup` is the fix.
 
 Since every session starts off, the footer on the first reply after `/decision-layer` is
 your confirmation that the arming took.
