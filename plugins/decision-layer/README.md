@@ -35,8 +35,35 @@ own at the top or the bottom of a message, which is where you would reach for on
 a switch anywhere else does nothing, so pasting a transcript — or this page, which names
 both of them — leaves the boundary exactly as it was.
 
+## Selecting the output style
+
+`/decision-layer setup` writes one line, `"outputStyle": "decision-layer:Plain"`, into your
+own `~/.claude/settings.json`. Nothing else changes, and you run it once.
+
+**Selecting it changes nothing by itself.** An output style normally rewrites every reply, but
+this one is written to apply only to a turn the hook has marked. A session you have not armed
+reads exactly as it would with no output style selected at all.
+
+Rather set it yourself? Add the `outputStyle` line to `~/.claude/settings.json`, or create that
+file with just this in it:
+
+```json
+{
+  "outputStyle": "decision-layer:Plain"
+}
+```
+
+A terminal also has a picker — `/config` → **Output style** — but it saves your choice into
+`.claude/settings.local.json` inside the project you are standing in, so it covers that one
+project. The VS Code extension and the desktop app have no picker at all: the extension lists
+**Output styles** in its `/` menu and then points you back to a terminal, and the desktop app's
+`/config` opens Settings → Claude Code instead.
+
 ## If it is not working
 
+- **Replies have no `▪ decision-layer` footer.** Setup was skipped, or did not take. The plugin
+  says so at the start of every session when the style is not selected — without it there is
+  nothing to arm, and that is the one failure that otherwise leaves no trace.
 - **You ran `/decision-layer setup`, armed, and nothing happened.** Claude Code reads the
   output style once, when a session opens, so the session you ran setup in cannot see it.
   Start a new session, or run `/clear`. Until then arming accepts the command and changes
@@ -48,10 +75,14 @@ both of them — leaves the boundary exactly as it was.
   provides `bash`, and the launcher steps over the Microsoft Store's `python3` and `python`
   placeholders to reach a real one. Without either the hook never runs, so the boundary never
   turns on.
-
-The [landing page](../../README.md#if-it-is-not-working) covers the rest: replies with no
-footer at all, a selection that reached only one project, and an output style of your own that
-stopped applying.
+- **The terminal picker only took effect in one project.** That is where it saves: into
+  `.claude/settings.local.json`, inside the project you were in, and it has no global option.
+  Run `/decision-layer setup` instead, or move the `outputStyle` line into
+  `~/.claude/settings.json` yourself.
+- **An output style you were already using stopped applying.** Claude Code holds one output
+  style at a time, so selecting this one takes the slot. Put the old name back into
+  `~/.claude/settings.json` to return to it — `/decision-layer setup` tells you which name it
+  took over from.
 
 ## What it does not touch
 

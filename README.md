@@ -2,27 +2,15 @@
 
 # Big Picture
 
-### Claude Code plugins that fix what your agent tells you — not what you tell it.
+### Claude Code plugins that keep the code out of the answer — so you can judge it and decide.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-8A63D2)](https://claude.com/claude-code)
-[![Measured](https://img.shields.io/badge/boundary-measured-brightgreen)](evals/)
+[![Measured](https://img.shields.io/badge/measured-55%20sessions-brightgreen)](evals/)
 
-<br>
-
-<img src="assets/ladder.svg" alt="The abstraction ladder. Machine code, assembly, C and Python each sit behind a hard boundary. Natural language sits on top of all of them behind a broken one." width="820">
+First plugin: **decision-layer** — off by default, armed one session at a time.
 
 </div>
-
-Every step on that ladder shipped with a **hard boundary**. You write Python without reading
-the assembly it becomes, and that is not a loss — it is the entire point of the step.
-
-The newest step did not ship one. So the detail leaks upward, and you get answers full of
-code you never agreed to read, cannot check, and cannot decide on.
-
-**These plugins put the boundary back.**
-
----
 
 ## See the difference
 
@@ -64,9 +52,9 @@ $ mvn dependency:tree -Dincludes=com.google.guava
 
 <table>
 <tr>
-<th width="45%">❌ &nbsp; Without decision-layer</th>
+<th width="45%">Without decision-layer</th>
 <th width="10%"></th>
-<th width="45%">✅ &nbsp; With decision-layer</th>
+<th width="45%">With decision-layer</th>
 </tr>
 <tr valign="top">
 <td>
@@ -139,21 +127,12 @@ safer call than shipping a build you can't currently reproduce.**
 
 </div>
 
-> [!IMPORTANT]
-> The left column is not wrong. It is a good technical answer, and if you write Java it is
-> the one you want.
->
-> But the person asking has a release going out tonight, and what they need to know is
-> whether to ship. Only the right column answers that — **"if that comes back clean, ship;
-> if not, slipping is the safer call"** — and it does it without naming the library once.
->
-> The detail is not gone. It is sitting under the line, waiting.
+The left answer is not wrong — if you write Java, it is the one you want. But the person
+asking needs to know whether to ship tonight, and only the right answer tells them:
+**ship, or slip.** The detail is not gone. It is under the line, waiting.
 
-<sub>Both columns are real, unedited output from two live Claude Code sessions given the
-identical question — one armed, one not. Run in a <b>clean install</b> holding this plugin
-and nothing else: no personal instruction files, no project instructions, no other plugins,
-so nothing but the boundary differs. Shortened here to fit the page; sentences were cut, no
-word was changed. <b><a href="examples/dependency-conflict">Read the full replies →</a></b>
+<sub>Real, unedited output from two clean Claude Code sessions given the same question,
+shortened to fit the page. <b><a href="examples/dependency-conflict">Read the full replies →</a></b>
 &nbsp;·&nbsp; <a href="examples">more examples</a></sub>
 
 ---
@@ -162,44 +141,50 @@ word was changed. <b><a href="examples/dependency-conflict">Read the full replie
 
 <div align="center">
 
+<img src="assets/ladder.svg" alt="The abstraction ladder. Machine code, assembly, C and Python each sit behind a hard boundary. Natural language sits on top of all of them behind a broken one." width="820">
+
+</div>
+
+Every step on that ladder has a hard boundary: you write Python without reading the assembly
+it becomes. Natural language is the newest step, and it shipped without one — so the detail
+leaks upward, into answers full of code you never agreed to read and cannot decide on.
+**decision-layer puts the boundary back.**
+
+<div align="center">
+
 <img src="assets/boundary.svg" alt="A dense technical reply on the left passes through the decision-layer boundary and becomes a short plain-language decision on the right, with the implementation detail kept below a marked line." width="860">
 
 </div>
 
-The agent still does all the work and still knows every detail. What changes is the
-**contract on the way back**: the prose has to stand on its own, and anything you would need
-a pointer for goes below a marked line, where it waits for you if you want it.
-
-Nothing is thrown away. Ask for the code in plain words — *"show me that function"* — and the
-boundary steps aside for that one reply.
-
-**Every reply written under the boundary ends with `▪ decision-layer`.** That is how you
-know it was on.
+The agent still does all the work and still knows every detail. What changes is the way back:
+the prose has to stand on its own, and anything you would need a pointer for goes below a
+`--- where ---` line, where it waits if you want it. Ask for the code in plain words — *"show
+me that function"* — and the boundary steps aside for that one reply.
 
 ## Install
 
-Three steps, about a minute.
+Three commands, about a minute.
 
-**1 — Install the plugin.** In Claude Code:
+**1 — Install the plugin.**
 
 ```
 /plugin marketplace add VincentHHY/big-picture
 /plugin install decision-layer@big-picture
 ```
 
-**2 — Select the output style, once.**
+**2 — Select the output style, once.** This makes the boundary available in every project —
+terminal, VS Code extension and desktop app alike.
 
 ```
 /decision-layer setup
 ```
 
-That one command makes the boundary available in every project — in the terminal, the VS Code
-extension and the desktop app alike — and step 3 is how you actually use it.
+Under the hood it writes one line, `"outputStyle": "decision-layer:Plain"`, into your own
+`~/.claude/settings.json`.
 
 > [!IMPORTANT]
 > **Step 3 will not work in this session.** Claude Code reads the output style once, when a
-> session opens, so the session you ran step 2 in cannot see it. Until you start a new
-> session or run `/clear`, step 3 accepts the command and changes nothing.
+> session opens. Start a new session or run `/clear` first.
 
 **3 — Turn it on whenever you want it.**
 
@@ -207,76 +192,28 @@ extension and the desktop app alike — and step 3 is how you actually use it.
 /decision-layer
 ```
 
-That is the whole thing. `/decision-layer off` turns it off again, and **every new session
-starts off**, so it never follows you into tomorrow.
+`/decision-layer off` turns it off again, and **every new session starts off**, so it never
+follows you into tomorrow.
 
-Under the hood it is a single line, `"outputStyle": "decision-layer:Plain"`, written into your
-own `~/.claude/settings.json`.
-
-**Selecting it changes nothing by itself.** An output style normally rewrites every reply,
-but this one is written to apply only to a turn the hook has marked. So a session you have
-not armed reads exactly as it would with no output style selected at all.
-
-<details>
-<summary>&nbsp;&nbsp;rather set it yourself?</summary>
-
-Add the `outputStyle` line to `~/.claude/settings.json`, or create that file with just this
-in it:
-
-```json
-{
-  "outputStyle": "decision-layer:Plain"
-}
-```
-
-A terminal also has a picker — `/config` → **Output style** — but it saves your choice into
-`.claude/settings.local.json` inside the project you are standing in, so it covers that one
-project. The VS Code extension and the desktop app have no picker at all: the extension lists
-**Output styles** in its `/` menu and then points you back to a terminal, and the desktop
-app's `/config` opens Settings → Claude Code instead.
-
-</details>
-
-### If it is not working
-
-- **Replies have no `▪ decision-layer` footer.** Step 2 was skipped, or did not take. The
-  plugin says so at the start of every session when the style is not selected — without it
-  there is nothing to arm, and that is the one failure that otherwise leaves no trace.
-- **The terminal picker only took effect in one project.** That is where it saves: into
-  `.claude/settings.local.json`, inside the project you were in, and it has no global option.
-  Run `/decision-layer setup` instead, or move the `outputStyle` line into
-  `~/.claude/settings.json` yourself.
-- **An output style you were already using stopped applying.** Claude Code holds one output
-  style at a time, so selecting this one takes the slot. Put the old name back into
-  `~/.claude/settings.json` to return to it — `/decision-layer setup` tells you which name it
-  took over from.
-- **The command menu shows the name twice**, as `decision-layer:decision-layer`. That is
-  Claude Code filing a skill under the name of the plugin that ships it. The short
-  `/decision-layer` works; type that.
-- **Nothing happens at all.** The plugin needs `bash` and Python 3 on your `PATH`. macOS and
-  Linux have both already; on Windows, Git Bash provides `bash`.
-
-Full documentation, including the escape hatches and how the pieces fit together:
-**[plugins/decision-layer](plugins/decision-layer)**.
+Switches, troubleshooting and how it is built: **[plugins/decision-layer](plugins/decision-layer)**.
 
 ## Does it hold up?
 
-Not a style guide anyone hopes is being followed. Every case runs as a **real armed session**
-driven by the live hook and the live output style, and the headline judge is a grader that
-sees only the prose — never the code, the fixture, or the question. That is the reader's
-actual situation.
+Every case is a real armed session, driven by the live hook and the live output style. The
+judge sees only the prose — never the code, the fixture or the question. That is the reader's
+own situation.
 
 <div align="center">
 
-| | ✅ with decision-layer | ❌ without |
+| | ❌ without | ✅ with decision-layer |
 |---|:---:|:---:|
-| **reader could follow it** | **100%** | 20–40% |
-| mechanical checks passed | 91–100% | 18–40% |
+| **reader could follow it** | 20–40% | **100%** |
+| mechanical checks passed | 18–40% | **91–100%** |
 
 </div>
 
 Across **55** armed replies where the boundary was meant to apply, the reader was blocked
-**once**.
+**once**. Suite and method: [evals/](evals/).
 
 ## Licence
 

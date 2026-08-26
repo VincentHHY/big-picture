@@ -748,11 +748,8 @@ def test_the_hand_edit_route_survives_where_it_is_described():
     """Only the terminal has an Output style picker. The VS Code extension lists the entry but
     sends you to a terminal, and the desktop app's /config opens its own settings screen, so a
     document that names only the picker strands both of them.
-
-    The plugin page is exempt: it names the setup command and links out for everything else,
-    so it never sends anyone to edit the file by hand.
     """
-    for path in [DOCS[0], DOCS[2]]:
+    for path in DOCS:
         text = path.read_text(encoding="utf-8")
         assert "~/.claude/settings.json" in text, (
             path.name + " names no route for surfaces without the /config picker")
