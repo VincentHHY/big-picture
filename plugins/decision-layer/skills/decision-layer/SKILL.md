@@ -53,6 +53,6 @@ No restart, no code change.
 DECISION-LAYER:ARMED
 
 This turn is armed. Apply the decision-layer output style's "While armed" rules to your
-reply: the sufficiency test, recast-then-own, anchors below `--- where ---`, and the closing
-footer.
+reply: the sufficiency test, the skim test, recast-then-own, anchors below `--- where ---`,
+and the closing footer.
 <!-- INJECT:END -->
