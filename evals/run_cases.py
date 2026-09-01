@@ -55,7 +55,7 @@ def load_evals():
     return json.loads((EVALS_DIR / "evals.json").read_text(encoding="utf-8"))
 
 
-def run_one(case, armed, index, iteration):
+def run_one(case, armed, index, iteration, plugin_dir=None):
     """One real session. Returns a record; never raises, so one bad run cannot end the sweep."""
     session_id = str(uuid.uuid4())
     flag = STATE_DIR / f"decision-layer-{session_id}"
@@ -102,13 +102,23 @@ def run_one(case, armed, index, iteration):
         #
         # --no-session-persistence keeps these throwaway runs out of the real session
         # history. A sweep is 45 sessions and they would otherwise bury the user's own.
+        # --plugin-dir loads one copy of the plugin for this session only, overriding the
+        # installed one. Two sweeps pointed at two copies of the plugin differ in nothing
+        # but the copy, so a rule change can be measured against its own predecessor in
+        # the same conditions rather than against an older sweep run on a different day.
+        # Point BOTH arms at a copy: an arm that used the installed plugin instead would
+        # differ from its twin in how the plugin was loaded as well as in what it says.
+        command = [
+            "claude", "-p",
+            "--session-id", session_id,
+            "--no-session-persistence",
+            "--output-format", "json",
+        ]
+        if plugin_dir:
+            command += ["--plugin-dir", str(plugin_dir)]
+
         completed = subprocess.run(
-            [
-                "claude", "-p",
-                "--session-id", session_id,
-                "--no-session-persistence",
-                "--output-format", "json",
-            ],
+            command,
             input=prompt.encode("utf-8"),
             capture_output=True,
             cwd=str(CLAUDE_DIR),
@@ -156,6 +166,11 @@ def main():
     parser.add_argument("--only", default="", help="comma-separated case names")
     parser.add_argument("--iteration", type=int, default=1)
     parser.add_argument("--concurrency", type=int, default=4)
+    parser.add_argument("--plugin-dir", default="",
+                        help="load the plugin from this directory for the sweep, overriding the "
+                             "installed copy. Give two sweeps two copies to A/B a rule change "
+                             "under identical conditions. Point BOTH arms at a copy, never one "
+                             "at a copy and the other at the install.")
     args = parser.parse_args()
 
     spec = load_evals()
@@ -177,11 +192,13 @@ def main():
 
     print(f"iteration {args.iteration}: {len(cases)} cases, {len(jobs)} sessions, "
           f"{args.concurrency} at a time")
+    print(f"plugin: {args.plugin_dir or 'the installed copy'}")
 
     records = []
     with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         futures = {
-            pool.submit(run_one, case, armed, index, args.iteration): (case["name"], armed, index)
+            pool.submit(run_one, case, armed, index, args.iteration,
+                        args.plugin_dir or None): (case["name"], armed, index)
             for case, armed, index in jobs
         }
         for future in as_completed(futures):
