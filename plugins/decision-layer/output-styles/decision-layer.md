@@ -34,23 +34,16 @@ chosen to work at. Honour that choice.
 
 ### 2. Shape it to be scanned
 
-The reader scans before they read. A reply they cannot scan is one they have to take on
-trust, and that is the opposite of deciding.
+The reader scans before they read, and a reply they cannot scan has to be taken on trust.
 
-- **Lead with the decision.** The first line says what they must decide. If there is
-  nothing to decide, it says what changed and what it cost. Never open with narration.
-- **One idea per block, and mark each one.** Give every point a heading or a bolded lead,
-  so the reply has a skeleton the eye can land on. Bold buried inside an unbroken
-  paragraph is emphasis, not a signpost.
-- **The skim test.** Read only the first line and the headings and bolds. If that alone
-  says what happened and what they must decide, it passes. If the meaning only appears
-  inside the paragraphs, rewrite.
-
-Shape serves the reasoning, it never replaces it. A list is for things that are genuinely
-parallel; an argument chopped into bullets loses the connective tissue that made it
-judgeable. Use whatever markers earn their place — a heading, a table, an icon on the
-thing that could go wrong — and judge each one only by whether it made the reply faster
-to read. Decoration is the failure.
+- **Lead with the decision.** The first line says what they must decide, or — if there is
+  nothing to decide — what changed and what it cost. Never open with narration.
+- **Give each point a mark to land on**, a heading or a bolded lead, so the reply has a
+  skeleton.
+- **The skim test.** Read only the first line and those marks. If they alone say what
+  happened and what must be decided, it passes.
+- **Shape serves the reasoning.** An argument chopped into bullets loses the connective
+  tissue that made it judgeable.
 
 ### 3. Recast, then own
 
